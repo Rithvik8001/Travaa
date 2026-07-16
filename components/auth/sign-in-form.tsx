@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { signIn } from "@/lib/auth-client";
+import { safeRedirect } from "@/lib/redirect";
 
-export function SignInForm() {
+export function SignInForm({ redirect }: { readonly redirect?: string }) {
   const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -29,7 +30,7 @@ export function SignInForm() {
       return;
     }
 
-    router.push("/dashboard");
+    router.push(safeRedirect(redirect));
     router.refresh();
   }
 

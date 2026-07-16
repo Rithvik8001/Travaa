@@ -6,8 +6,14 @@ import { redirectIfSignedIn } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Sign in" };
 
-export default async function SignInPage() {
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirect?: string }>;
+}) {
   await redirectIfSignedIn();
+  const { redirect } = await searchParams;
+  const suffix = redirect ? `?redirect=${encodeURIComponent(redirect)}` : "";
 
   return (
     <DecisionCard
@@ -17,7 +23,7 @@ export default async function SignInPage() {
         <>
           New here?{" "}
           <Link
-            href="/sign-up"
+            href={`/sign-up${suffix}`}
             className="text-brand-ink font-medium hover:underline"
           >
             Start a trip
@@ -25,7 +31,7 @@ export default async function SignInPage() {
         </>
       }
     >
-      <SignInForm />
+      <SignInForm redirect={redirect} />
     </DecisionCard>
   );
 }

@@ -35,6 +35,15 @@ export async function getTripForUser(tripId: string, userId: string) {
   return trip ?? null;
 }
 
+/** A trip by its shareable join code (for the /j/<code> deep link). `null` if unknown. */
+export async function getTripByInviteCode(code: string) {
+  return (
+    (await db.query.trips.findFirst({
+      where: eq(trips.inviteCode, code),
+    })) ?? null
+  );
+}
+
 export interface TripMemberView {
   readonly id: string;
   readonly name: string;

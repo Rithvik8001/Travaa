@@ -136,6 +136,29 @@ export async function deleteTrip(tripId: string): Promise<void> {
   redirect("/dashboard");
 }
 
+/**
+ * Join a trip by its invite code. Idempotent — re-accepting an invite you already
+ * hold is a no-op. Invoked from the /j/<code> card's Accept form.
+ */
+export async function joinTrip(code: string): Promise<void> {
+  const { user } = await requireSession();
+
+  const trip = await db.query.trips.findFirst({
+    where: eq(trips.inviteCode, code),
+    columns: { id: true },
+  });
+  if (!trip) redirect("/dashboard");
+
+  await db
+    .insert(tripMembers)
+    .values({ id: randomUUID(), tripId: trip.id, userId: user.id })
+    .onConflictDoNothing();
+
+  revalidatePath("/dashboard");
+  revalidatePath(`/trips/${trip.id}`);
+  redirect(`/trips/${trip.id}`);
+}
+
 /** No-look-alike alphabet (no 0/O/1/I/L) for codes that get read aloud / retyped. */
 const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 
