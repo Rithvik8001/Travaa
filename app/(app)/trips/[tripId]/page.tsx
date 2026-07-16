@@ -4,9 +4,10 @@ import { notFound } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
 import { DeleteTripButton } from "@/components/trips/delete-trip-button";
 import { InviteDialog } from "@/components/trips/invite-dialog";
+import { LeaveTripButton } from "@/components/trips/leave-trip-button";
 import { MemberStack } from "@/components/trips/member-stack";
 import { avatarColor } from "@/lib/avatar-color";
-import { deleteTrip, unarchiveTrip } from "@/lib/trips/actions";
+import { deleteTrip, leaveTrip, unarchiveTrip } from "@/lib/trips/actions";
 import { getTripForUser, listTripMembers } from "@/lib/trips/queries";
 import { formatWindow, relativeToNow } from "@/lib/trips/format";
 import { requireSession } from "@/lib/session";
@@ -63,23 +64,25 @@ export default async function TripPage({
                 members={members}
               />
             ) : null}
-            {isArchived ? (
-              <form action={unarchiveTrip.bind(null, trip.id)}>
-                <button
-                  type="submit"
+            {isOwner ? (
+              isArchived ? (
+                <form action={unarchiveTrip.bind(null, trip.id)}>
+                  <button
+                    type="submit"
+                    className="text-brand-ink text-[13.5px] font-medium hover:underline"
+                  >
+                    Unarchive
+                  </button>
+                </form>
+              ) : (
+                <Link
+                  href={`/trips/${trip.id}/edit`}
                   className="text-brand-ink text-[13.5px] font-medium hover:underline"
                 >
-                  Unarchive
-                </button>
-              </form>
-            ) : (
-              <Link
-                href={`/trips/${trip.id}/edit`}
-                className="text-brand-ink text-[13.5px] font-medium hover:underline"
-              >
-                Edit
-              </Link>
-            )}
+                  Edit
+                </Link>
+              )
+            ) : null}
             <Link
               href="/settings"
               aria-label="Your profile"
@@ -132,9 +135,15 @@ export default async function TripPage({
           </p>
         </div>
 
-        {isArchived ? (
+        {isOwner && isArchived ? (
           <div className="mt-6 flex justify-center">
             <DeleteTripButton action={deleteTrip.bind(null, trip.id)} />
+          </div>
+        ) : null}
+
+        {!isOwner ? (
+          <div className="mt-6 flex justify-center">
+            <LeaveTripButton action={leaveTrip.bind(null, trip.id)} />
           </div>
         ) : null}
       </div>

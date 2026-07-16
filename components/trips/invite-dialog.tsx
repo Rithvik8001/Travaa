@@ -1,10 +1,15 @@
 "use client";
 
 import { Dialog } from "@base-ui/react/dialog";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import { avatarColor } from "@/lib/avatar-color";
-import { ensureInviteCode, rotateInviteCode } from "@/lib/trips/actions";
+import {
+  ensureInviteCode,
+  removeMember,
+  rotateInviteCode,
+} from "@/lib/trips/actions";
 import type { TripMemberView } from "@/lib/trips/queries";
 
 interface InviteDialogProps {
@@ -27,8 +32,16 @@ export function InviteDialog({
   );
   const [copied, setCopied] = useState(false);
   const [pending, startTransition] = useTransition();
+  const router = useRouter();
 
   const link = code ? `${origin}/j/${code}` : "";
+
+  function remove(userId: string) {
+    startTransition(async () => {
+      await removeMember(tripId, userId);
+      router.refresh();
+    });
+  }
 
   function generateIfNeeded(open: boolean) {
     if (open && !code) {
@@ -117,9 +130,20 @@ export function InviteDialog({
                   <span className="text-foreground flex-1 truncate text-[14.5px]">
                     {m.name}
                   </span>
-                  <span className="text-subtle-foreground text-[12.5px]">
-                    {m.isOwner ? "Organizer" : "Member"}
-                  </span>
+                  {m.isOwner ? (
+                    <span className="text-subtle-foreground text-[12.5px]">
+                      Organizer
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={pending}
+                      onClick={() => remove(m.id)}
+                      className="text-subtle-foreground hover:text-danger text-[12.5px] transition-colors disabled:opacity-55"
+                    >
+                      Remove
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

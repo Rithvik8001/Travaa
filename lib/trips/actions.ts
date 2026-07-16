@@ -1,7 +1,7 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
@@ -157,6 +157,41 @@ export async function joinTrip(code: string): Promise<void> {
   revalidatePath("/dashboard");
   revalidatePath(`/trips/${trip.id}`);
   redirect(`/trips/${trip.id}`);
+}
+
+/** Organizer removes a member. The organizer (owner) can never be removed. */
+export async function removeMember(tripId: string, userId: string): Promise<void> {
+  const { user } = await requireSession();
+
+  const trip = await ownedTrip(tripId, user.id);
+  if (!trip) redirect("/dashboard");
+  if (userId === trip.ownerId) return;
+
+  await db
+    .delete(tripMembers)
+    .where(and(eq(tripMembers.tripId, tripId), eq(tripMembers.userId, userId)));
+
+  revalidatePath("/dashboard");
+  revalidatePath(`/trips/${tripId}`);
+}
+
+/** A member leaves a trip. The organizer can't leave — they delete the trip instead. */
+export async function leaveTrip(tripId: string): Promise<void> {
+  const { user } = await requireSession();
+
+  const trip = await db.query.trips.findFirst({
+    where: eq(trips.id, tripId),
+    columns: { ownerId: true },
+  });
+  if (!trip) redirect("/dashboard");
+  if (trip.ownerId === user.id) redirect(`/trips/${tripId}`);
+
+  await db
+    .delete(tripMembers)
+    .where(and(eq(tripMembers.tripId, tripId), eq(tripMembers.userId, user.id)));
+
+  revalidatePath("/dashboard");
+  redirect("/dashboard");
 }
 
 /** No-look-alike alphabet (no 0/O/1/I/L) for codes that get read aloud / retyped. */
