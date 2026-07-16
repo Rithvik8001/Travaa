@@ -8,8 +8,8 @@ import { user } from "./schema";
  * both modules. Mirror the generated style: text PKs, timestamp defaults, a
  * userId FK index.
  *
- * Create/edit only for now. Deferred until their features land: archivedAt
- * (archiving), coverImageUrl (Cloudinary), a status column (status is derived).
+ * archivedAt: null = active, a timestamp = archived (soft-hidden). Deferred until
+ * their features land: coverImageUrl (Cloudinary), a status column (status is derived).
  */
 export const trips = pgTable(
   "trips",
@@ -22,6 +22,7 @@ export const trips = pgTable(
     destination: text("destination"),
     startDate: date("start_date"),
     endDate: date("end_date"),
+    archivedAt: timestamp("archived_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()

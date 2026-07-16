@@ -70,10 +70,9 @@ export async function updateTrip(
 ): Promise<{ error: string } | void> {
   const { user } = await requireSession();
 
-  const existing = await db.query.trips.findFirst({
-    where: eq(trips.id, tripId),
-  });
-  if (!existing || existing.ownerId !== user.id) return { error: "Trip not found." };
+  const existing = await ownedTrip(tripId, user.id);
+  if (!existing) return { error: "Trip not found." };
+  if (existing.archivedAt) return { error: "Unarchive this trip to edit it." };
 
   const parsed = parseTrip(input);
   if ("error" in parsed) return parsed;
@@ -83,4 +82,50 @@ export async function updateTrip(
   revalidatePath("/dashboard");
   revalidatePath(`/trips/${tripId}`);
   redirect(`/trips/${tripId}`);
+}
+
+/** The trip if it exists and belongs to the user, else null. */
+async function ownedTrip(tripId: string, userId: string) {
+  const trip = await db.query.trips.findFirst({ where: eq(trips.id, tripId) });
+  return trip && trip.ownerId === userId ? trip : null;
+}
+
+/**
+ * Archive/unarchive/delete are invoked from forms (no `{ error }` surface), so on a
+ * missing/foreign trip they just bounce to the dashboard rather than reporting.
+ */
+export async function archiveTrip(tripId: string): Promise<void> {
+  const { user } = await requireSession();
+  if (!(await ownedTrip(tripId, user.id))) redirect("/dashboard");
+
+  await db.update(trips).set({ archivedAt: new Date() }).where(eq(trips.id, tripId));
+
+  revalidatePath("/dashboard");
+  revalidatePath(`/trips/${tripId}`);
+  redirect("/dashboard");
+}
+
+export async function unarchiveTrip(tripId: string): Promise<void> {
+  const { user } = await requireSession();
+  if (!(await ownedTrip(tripId, user.id))) redirect("/dashboard");
+
+  await db.update(trips).set({ archivedAt: null }).where(eq(trips.id, tripId));
+
+  revalidatePath("/dashboard");
+  revalidatePath(`/trips/${tripId}`);
+  redirect(`/trips/${tripId}`);
+}
+
+export async function deleteTrip(tripId: string): Promise<void> {
+  const { user } = await requireSession();
+
+  const existing = await ownedTrip(tripId, user.id);
+  if (!existing) redirect("/dashboard");
+  // Delete is archived-only — the affordance only appears on an archived trip.
+  if (!existing.archivedAt) redirect(`/trips/${tripId}`);
+
+  await db.delete(trips).where(eq(trips.id, tripId));
+
+  revalidatePath("/dashboard");
+  redirect("/dashboard");
 }

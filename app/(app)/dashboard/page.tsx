@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SignOutButton } from "@/components/dashboard/sign-out-button";
+import { ArchivedTripRow } from "@/components/trips/archived-trip-row";
 import { TripListRow } from "@/components/trips/trip-list-row";
 import { Avatar } from "@/components/ui/avatar";
 import { Wordmark } from "@/components/ui/wordmark";
 import { avatarColor } from "@/lib/avatar-color";
-import { listTripsForUser } from "@/lib/trips/queries";
+import { listArchivedTripsForUser, listTripsForUser } from "@/lib/trips/queries";
 import { requireSession } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -13,7 +14,10 @@ export const metadata: Metadata = { title: "Dashboard" };
 export default async function DashboardPage() {
   const { user } = await requireSession();
   const handle = user.displayUsername ?? user.name;
-  const trips = await listTripsForUser(user.id);
+  const [trips, archived] = await Promise.all([
+    listTripsForUser(user.id),
+    listArchivedTripsForUser(user.id),
+  ]);
 
   return (
     <main className="mx-auto w-full max-w-[680px] px-6 pt-10 pb-20">
@@ -57,6 +61,19 @@ export default async function DashboardPage() {
           Start a new trip
         </Link>
       </div>
+
+      {archived.length > 0 ? (
+        <section className="mt-[34px]">
+          <h2 className="text-subtle-foreground mb-3 text-[12.5px] font-semibold tracking-[0.06em] uppercase">
+            Archived
+          </h2>
+          <div className="flex flex-col gap-2.5">
+            {archived.map((trip) => (
+              <ArchivedTripRow key={trip.id} trip={trip} />
+            ))}
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 }

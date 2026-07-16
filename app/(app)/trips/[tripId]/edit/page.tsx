@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { DecisionCard } from "@/components/ui/decision-card";
 import { Wordmark } from "@/components/ui/wordmark";
 import { TripForm } from "@/components/trips/trip-form";
-import { updateTrip } from "@/lib/trips/actions";
+import { archiveTrip, updateTrip } from "@/lib/trips/actions";
 import { getTripForUser } from "@/lib/trips/queries";
 import { requireSession } from "@/lib/session";
 
@@ -19,6 +20,8 @@ export default async function EditTripPage({
 
   const trip = await getTripForUser(tripId, user.id);
   if (!trip) notFound();
+  // Archived trips are view-only — restore before editing.
+  if (trip.archivedAt) redirect(`/trips/${tripId}`);
 
   return (
     <main className="flex flex-1 items-center justify-center p-6">
@@ -37,6 +40,17 @@ export default async function EditTripPage({
             }}
           />
         </DecisionCard>
+
+        <div className="border-hairline mt-6 border-t pt-5 text-center">
+          <p className="text-subtle-foreground mb-3 text-[13px]">
+            Archiving hides this trip from your dashboard. You can restore it anytime.
+          </p>
+          <form action={archiveTrip.bind(null, trip.id)}>
+            <Button type="submit" variant="quiet" size="sm">
+              Archive this trip
+            </Button>
+          </form>
+        </div>
       </div>
     </main>
   );
