@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { trips } from "@/lib/db/trips";
+import { trips, tripMembers } from "@/lib/db/trips";
 import { requireSession } from "@/lib/session";
 
 /** Raw form values; dates arrive as "" or "YYYY-MM-DD". */
@@ -58,7 +58,13 @@ export async function createTrip(input: TripInput): Promise<{ error: string } | 
   if ("error" in parsed) return parsed;
 
   const id = randomUUID();
-  await db.insert(trips).values({ id, ownerId: user.id, ...parsed.fields });
+  // Trip + the creator's membership land together — the owner is always a member.
+  await db.transaction(async (tx) => {
+    await tx.insert(trips).values({ id, ownerId: user.id, ...parsed.fields });
+    await tx
+      .insert(tripMembers)
+      .values({ id: randomUUID(), tripId: id, userId: user.id });
+  });
 
   revalidatePath("/dashboard");
   redirect(`/trips/${id}`);

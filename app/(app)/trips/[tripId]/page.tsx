@@ -3,9 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
 import { DeleteTripButton } from "@/components/trips/delete-trip-button";
+import { MemberStack } from "@/components/trips/member-stack";
 import { avatarColor } from "@/lib/avatar-color";
 import { deleteTrip, unarchiveTrip } from "@/lib/trips/actions";
-import { getTripForUser } from "@/lib/trips/queries";
+import { getTripForUser, listTripMembers } from "@/lib/trips/queries";
 import { formatWindow, relativeToNow } from "@/lib/trips/format";
 import { requireSession } from "@/lib/session";
 
@@ -31,6 +32,7 @@ export default async function TripPage({
   const trip = await getTripForUser(tripId, user.id);
   if (!trip) notFound();
 
+  const members = await listTripMembers(tripId);
   const isArchived = Boolean(trip.archivedAt);
   const window = formatWindow(trip.startDate, trip.endDate);
   const relative = relativeToNow(trip.startDate);
@@ -83,27 +85,32 @@ export default async function TripPage({
         </div>
       </div>
 
-      <div className="mx-auto max-w-[760px] px-6 pt-[30px]">
-        <div className="mb-2 flex items-center gap-2.5">
-          {isArchived ? (
-            <span className="text-muted-foreground bg-muted rounded-[7px] px-[9px] py-1 text-[11px] font-semibold tracking-[0.04em] uppercase">
-              Archived
-            </span>
-          ) : (
-            <span className="text-brand-ink bg-brand/12 rounded-[7px] px-[9px] py-1 text-[11px] font-semibold tracking-[0.04em] uppercase">
-              Planning
-            </span>
-          )}
-          {!isArchived && relative ? (
-            <span className="text-subtle-foreground text-[13px]">{relative}</span>
+      <div className="mx-auto flex max-w-[760px] flex-wrap items-start justify-between gap-4 px-6 pt-[30px]">
+        <div>
+          <div className="mb-2 flex items-center gap-2.5">
+            {isArchived ? (
+              <span className="text-muted-foreground bg-muted rounded-[7px] px-[9px] py-1 text-[11px] font-semibold tracking-[0.04em] uppercase">
+                Archived
+              </span>
+            ) : (
+              <span className="text-brand-ink bg-brand/12 rounded-[7px] px-[9px] py-1 text-[11px] font-semibold tracking-[0.04em] uppercase">
+                Planning
+              </span>
+            )}
+            {!isArchived && relative ? (
+              <span className="text-subtle-foreground text-[13px]">{relative}</span>
+            ) : null}
+          </div>
+          <h1 className="text-ink text-[30px] font-semibold tracking-[-0.025em]">
+            {trip.name}
+          </h1>
+          {subtitle ? (
+            <p className="text-muted-foreground mt-1.5 text-[15px]">{subtitle}</p>
           ) : null}
         </div>
-        <h1 className="text-ink text-[30px] font-semibold tracking-[-0.025em]">
-          {trip.name}
-        </h1>
-        {subtitle ? (
-          <p className="text-muted-foreground mt-1.5 text-[15px]">{subtitle}</p>
-        ) : null}
+        <div className="pt-1">
+          <MemberStack members={members} />
+        </div>
       </div>
 
       <div className="mx-auto max-w-[760px] px-6 pt-[26px] pb-[90px]">
