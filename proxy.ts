@@ -2,7 +2,7 @@ import { getSessionCookie } from "better-auth/cookies";
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * Bounces signed-out traffic off /dashboard before it renders.
+ * Bounces signed-out traffic off the authed surface (/dashboard, /trips) before it renders.
  *
  * Only the no-cookie direction is decided here. `getSessionCookie` proves a cookie
  * is present, not that it is valid, so trusting it to redirect *into* /dashboard
@@ -15,7 +15,7 @@ import { NextResponse, type NextRequest } from "next/server";
 export function proxy(request: NextRequest) {
   const hasSessionCookie = Boolean(getSessionCookie(request));
 
-  if (!hasSessionCookie && request.nextUrl.pathname.startsWith("/dashboard")) {
+  if (!hasSessionCookie) {
     return NextResponse.redirect(new URL("/sign-in", request.url));
   }
 
@@ -23,5 +23,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: ["/dashboard/:path*", "/trips/:path*"],
 };

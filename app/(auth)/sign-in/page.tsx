@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { AuthCard } from "@/components/auth/auth-card";
 import { SignInForm } from "@/components/auth/sign-in-form";
+import { DecisionCard } from "@/components/ui/decision-card";
 import { redirectIfSignedIn } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Sign in" };
@@ -10,7 +10,7 @@ export default async function SignInPage() {
   await redirectIfSignedIn();
 
   return (
-    <AuthCard
+    <DecisionCard
       title="Welcome back"
       subtitle="Pick up where your crew left off."
       footer={
@@ -26,6 +26,6 @@ export default async function SignInPage() {
       }
     >
       <SignInForm />
-    </AuthCard>
+    </DecisionCard>
   );
 }
