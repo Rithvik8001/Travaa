@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AuthCard } from "@/components/auth/auth-card";
+import { SignUpForm } from "@/components/auth/sign-up-form";
 import { redirectIfSignedIn } from "@/lib/session";
-import { AuthCard } from "../auth-card";
-import { SignUpForm } from "./sign-up-form";
 
 export const metadata: Metadata = { title: "Start a trip" };
 

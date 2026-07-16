@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
+import { SignOutButton } from "@/components/dashboard/sign-out-button";
 import { Avatar } from "@/components/ui/avatar";
 import { Wordmark } from "@/components/ui/wordmark";
 import { avatarColor } from "@/lib/avatar-color";
 import { requireSession } from "@/lib/session";
-import { SignOutButton } from "./sign-out-button";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
