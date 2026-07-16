@@ -22,6 +22,7 @@
   --color-brand-ink: var(--brand-ink);
   --color-brand-quiet: var(--brand-quiet);
   --color-positive: var(--positive);
+  --color-danger: var(--danger);
   --color-ring: var(--ring);
 
   --font-sans: var(--sans-stack);
@@ -62,6 +63,7 @@
   --brand-ink: oklch(0.47 0.09 255);
   --brand-quiet: oklch(0.42 0.05 255);
   --positive: oklch(0.5 0.1 150);
+  --danger: oklch(0.52 0.16 27);
   --ring: oklch(0.55 0.13 255);
 }
 
