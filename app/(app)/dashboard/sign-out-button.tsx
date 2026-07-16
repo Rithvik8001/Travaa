@@ -17,7 +17,12 @@ export function SignOutButton() {
   }
 
   return (
-    <Button variant="quiet" size="sm" onClick={handleSignOut} disabled={pending}>
+    <Button
+      variant="quiet"
+      onClick={handleSignOut}
+      disabled={pending}
+      className="text-[14px]"
+    >
       {pending ? "Signing out…" : "Sign out"}
     </Button>
   );

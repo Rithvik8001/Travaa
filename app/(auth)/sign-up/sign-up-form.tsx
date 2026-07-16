@@ -39,7 +39,7 @@ export function SignUpForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-[14px]">
       <Field label="Username">
         {(props) => (
           <Input
@@ -86,7 +86,7 @@ export function SignUpForm() {
         </p>
       ) : null}
 
-      <Button type="submit" disabled={pending} className="mt-1 w-full">
+      <Button type="submit" size="block" disabled={pending} className="mt-1.5">
         {pending ? "Creating account…" : "Create account"}
       </Button>
     </form>

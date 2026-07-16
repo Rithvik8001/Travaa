@@ -17,6 +17,8 @@ export const buttonVariants = cva(
       size: {
         md: "",
         sm: "",
+        /** Full-width form button on the app surface — see Travaa.dc.html. */
+        block: "",
       },
     },
     compoundVariants: [
@@ -25,7 +27,13 @@ export const buttonVariants = cva(
         size: "sm",
         class: "rounded-[11px] px-[17px] py-[9px] text-sm",
       },
+      {
+        variant: "solid",
+        size: "block",
+        class: "w-full rounded-[12px] px-4 py-[13px] text-[15px]",
+      },
       { variant: "quiet", size: "sm", class: "text-[14.5px]" },
+      { variant: "quiet", size: "block", class: "w-full py-[9px] text-[14px]" },
     ],
     defaultVariants: { variant: "solid", size: "md" },
   },

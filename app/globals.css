@@ -33,6 +33,23 @@
   --shadow-lift: 0 30px 60px -40px oklch(0.4 0.03 90 / 0.3);
   --shadow-panel:
     0 2px 4px oklch(0.4 0.02 90 / 0.04), 0 44px 90px -44px oklch(0.4 0.03 90 / 0.32);
+
+  /* App surfaces: a hairline lift for lists, a real one for centered cards. */
+  --shadow-card: 0 1px 2px oklch(0.5 0.01 90 / 0.04);
+  --shadow-dialog: 0 20px 50px -24px oklch(0.4 0.02 90 / 0.28);
+
+  --animate-pop: pop 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 :root {
@@ -81,5 +98,30 @@
   }
   ::selection {
     background: oklch(0.9 0.05 255);
+  }
+  /**
+   * Chrome paints autofilled fields its own pale blue, which overrides the
+   * recessed fill for every returning user. Repaint with an inset fill; the
+   * focus-visible border still carries the focus indicator.
+   *
+   * Kept in its own rule — grouping this with the standard `:autofill`
+   * selector drops the whole list, since one unknown selector invalidates it.
+   */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--ink);
+    box-shadow: 0 0 0 1000px var(--background) inset;
+    caret-color: var(--ink);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }

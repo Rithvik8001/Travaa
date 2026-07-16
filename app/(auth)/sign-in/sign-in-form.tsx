@@ -34,7 +34,7 @@ export function SignInForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-[14px]">
       <Field label="Email">
         {(props) => (
           <Input
@@ -66,7 +66,7 @@ export function SignInForm() {
         </p>
       ) : null}
 
-      <Button type="submit" disabled={pending} className="mt-1 w-full">
+      <Button type="submit" size="block" disabled={pending} className="mt-1.5">
         {pending ? "Signing in…" : "Sign in"}
       </Button>
     </form>
