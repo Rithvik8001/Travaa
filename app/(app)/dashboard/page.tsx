@@ -13,7 +13,6 @@ export const metadata: Metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
   const { user } = await requireSession();
-  const handle = user.displayUsername ?? user.name;
   const [trips, archived] = await Promise.all([
     listTripsForUser(user.id),
     listArchivedTripsForUser(user.id),
@@ -25,11 +24,17 @@ export default async function DashboardPage() {
         <Wordmark markClassName="size-6" />
         <div className="flex items-center gap-[18px]">
           <SignOutButton />
-          <Avatar
-            initial={handle.slice(0, 1).toUpperCase()}
-            color={avatarColor(user.id)}
-            className="size-8 text-[13px]"
-          />
+          <Link
+            href="/settings"
+            aria-label="Your profile"
+            className="rounded-full transition-opacity hover:opacity-90"
+          >
+            <Avatar
+              initial={user.name.slice(0, 1).toUpperCase()}
+              color={avatarColor(user.id)}
+              className="size-8 text-[13px]"
+            />
+          </Link>
         </div>
       </header>
 

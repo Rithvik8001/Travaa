@@ -31,7 +31,6 @@ export default async function TripPage({
   const trip = await getTripForUser(tripId, user.id);
   if (!trip) notFound();
 
-  const handle = user.displayUsername ?? user.name;
   const isArchived = Boolean(trip.archivedAt);
   const window = formatWindow(trip.startDate, trip.endDate);
   const relative = relativeToNow(trip.startDate);
@@ -69,11 +68,17 @@ export default async function TripPage({
                 Edit
               </Link>
             )}
-            <Avatar
-              initial={handle.slice(0, 1).toUpperCase()}
-              color={avatarColor(user.id)}
-              className="size-[30px] text-[12.5px]"
-            />
+            <Link
+              href="/settings"
+              aria-label="Your profile"
+              className="rounded-full transition-opacity hover:opacity-90"
+            >
+              <Avatar
+                initial={user.name.slice(0, 1).toUpperCase()}
+                color={avatarColor(user.id)}
+                className="size-[30px] text-[12.5px]"
+              />
+            </Link>
           </div>
         </div>
       </div>
