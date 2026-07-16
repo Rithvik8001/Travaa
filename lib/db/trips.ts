@@ -29,6 +29,8 @@ export const trips = pgTable(
     destination: text("destination"),
     startDate: date("start_date"),
     endDate: date("end_date"),
+    /** Shareable join code (unique); null until an organizer generates one. */
+    inviteCode: text("invite_code").unique(),
     archivedAt: timestamp("archived_at"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")

@@ -135,3 +135,61 @@ export async function deleteTrip(tripId: string): Promise<void> {
   revalidatePath("/dashboard");
   redirect("/dashboard");
 }
+
+/** No-look-alike alphabet (no 0/O/1/I/L) for codes that get read aloud / retyped. */
+const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+
+function makeCode(length = 6): string {
+  let code = "";
+  for (let i = 0; i < length; i++) {
+    code += CODE_ALPHABET[Math.floor(Math.random() * CODE_ALPHABET.length)];
+  }
+  return code;
+}
+
+/** A code not already used by another trip. Collisions are astronomically rare; retry anyway. */
+async function uniqueInviteCode(): Promise<string> {
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const code = makeCode();
+    const clash = await db.query.trips.findFirst({
+      where: eq(trips.inviteCode, code),
+      columns: { id: true },
+    });
+    if (!clash) return code;
+  }
+  // Extremely unlikely; widen the space rather than fail.
+  return makeCode(9);
+}
+
+/** Returns the trip's join code, generating one on first request. Organizer-only. */
+export async function ensureInviteCode(
+  tripId: string,
+): Promise<{ code: string } | { error: string }> {
+  const { user } = await requireSession();
+
+  const trip = await ownedTrip(tripId, user.id);
+  if (!trip) return { error: "Only the organizer can invite." };
+  if (trip.inviteCode) return { code: trip.inviteCode };
+
+  const code = await uniqueInviteCode();
+  await db.update(trips).set({ inviteCode: code }).where(eq(trips.id, tripId));
+
+  revalidatePath(`/trips/${tripId}`);
+  return { code };
+}
+
+/** Replaces the join code (old links stop working). Organizer-only. */
+export async function rotateInviteCode(
+  tripId: string,
+): Promise<{ code: string } | { error: string }> {
+  const { user } = await requireSession();
+
+  if (!(await ownedTrip(tripId, user.id)))
+    return { error: "Only the organizer can invite." };
+
+  const code = await uniqueInviteCode();
+  await db.update(trips).set({ inviteCode: code }).where(eq(trips.id, tripId));
+
+  revalidatePath(`/trips/${tripId}`);
+  return { code };
+}

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
 import { DeleteTripButton } from "@/components/trips/delete-trip-button";
+import { InviteDialog } from "@/components/trips/invite-dialog";
 import { MemberStack } from "@/components/trips/member-stack";
 import { avatarColor } from "@/lib/avatar-color";
 import { deleteTrip, unarchiveTrip } from "@/lib/trips/actions";
@@ -34,6 +35,7 @@ export default async function TripPage({
 
   const members = await listTripMembers(tripId);
   const isArchived = Boolean(trip.archivedAt);
+  const isOwner = trip.ownerId === user.id;
   const window = formatWindow(trip.startDate, trip.endDate);
   const relative = relativeToNow(trip.startDate);
   const subtitle = [window, trip.destination].filter(Boolean).join(" · ");
@@ -53,6 +55,14 @@ export default async function TripPage({
             Trips
           </Link>
           <div className="flex items-center gap-[14px]">
+            {isOwner && !isArchived ? (
+              <InviteDialog
+                tripId={trip.id}
+                tripName={trip.name}
+                initialCode={trip.inviteCode}
+                members={members}
+              />
+            ) : null}
             {isArchived ? (
               <form action={unarchiveTrip.bind(null, trip.id)}>
                 <button
