@@ -18,10 +18,13 @@ import {
   tripDateVotes,
   tripSuggestions,
   tripSuggestionVotes,
+  tripSuggestionComments,
+  tripItineraryItems,
 } from "@/lib/db/trips";
 import { user } from "@/lib/db/schema";
 import type { Availability, DateOptionView } from "@/lib/trips/dates";
-import type { SuggestionView } from "@/lib/trips/suggestions";
+import type { CommentView, SuggestionView } from "@/lib/trips/suggestions";
+import { sortItinerary, type ItineraryItemView } from "@/lib/trips/itinerary";
 
 /** Active trips the user belongs to, newest first. "Your trips" for the dashboard. */
 export async function listTripsForUser(userId: string) {
@@ -194,28 +197,93 @@ export async function getSuggestions(
 
   if (rows.length === 0) return [];
 
-  const votes = await db
-    .select({
-      suggestionId: tripSuggestionVotes.suggestionId,
-      userId: tripSuggestionVotes.userId,
-    })
-    .from(tripSuggestionVotes)
-    .where(
-      inArray(
-        tripSuggestionVotes.suggestionId,
-        rows.map((r) => r.id),
-      ),
-    );
+  const suggestionIds = rows.map((r) => r.id);
 
-  const bySuggestion = new Map<string, string[]>();
+  const [votes, comments, converted] = await Promise.all([
+    db
+      .select({
+        suggestionId: tripSuggestionVotes.suggestionId,
+        userId: tripSuggestionVotes.userId,
+      })
+      .from(tripSuggestionVotes)
+      .where(inArray(tripSuggestionVotes.suggestionId, suggestionIds)),
+    db
+      .select({
+        id: tripSuggestionComments.id,
+        suggestionId: tripSuggestionComments.suggestionId,
+        parentId: tripSuggestionComments.parentId,
+        body: tripSuggestionComments.body,
+        createdBy: tripSuggestionComments.userId,
+        createdByName: user.name,
+        createdAt: tripSuggestionComments.createdAt,
+      })
+      .from(tripSuggestionComments)
+      .innerJoin(user, eq(user.id, tripSuggestionComments.userId))
+      .where(inArray(tripSuggestionComments.suggestionId, suggestionIds))
+      .orderBy(asc(tripSuggestionComments.createdAt)),
+    db
+      .select({ sourceSuggestionId: tripItineraryItems.sourceSuggestionId })
+      .from(tripItineraryItems)
+      .where(inArray(tripItineraryItems.sourceSuggestionId, suggestionIds)),
+  ]);
+
+  const votesBySuggestion = new Map<string, string[]>();
   for (const vote of votes) {
-    const list = bySuggestion.get(vote.suggestionId);
+    const list = votesBySuggestion.get(vote.suggestionId);
     if (list) list.push(vote.userId);
-    else bySuggestion.set(vote.suggestionId, [vote.userId]);
+    else votesBySuggestion.set(vote.suggestionId, [vote.userId]);
+  }
+
+  const convertedIds = new Set(
+    converted
+      .map((c) => c.sourceSuggestionId)
+      .filter((id): id is string => id !== null),
+  );
+
+  // Build the shallow comment tree per suggestion: top-level newest first, each
+  // with its replies oldest first (both derived from the createdAt-asc query).
+  const commentsBySuggestion = new Map<string, CommentView[]>();
+  const commentCountBySuggestion = new Map<string, number>();
+  const repliesByParent = new Map<string, CommentView[]>();
+
+  for (const c of comments) {
+    commentCountBySuggestion.set(
+      c.suggestionId,
+      (commentCountBySuggestion.get(c.suggestionId) ?? 0) + 1,
+    );
+    const node: CommentView & { replies: CommentView[] } = {
+      id: c.id,
+      body: c.body,
+      createdBy: c.createdBy,
+      createdByName: c.createdByName,
+      createdAt: c.createdAt.toISOString(),
+      replies: [],
+    };
+    if (c.parentId) {
+      const siblings = repliesByParent.get(c.parentId);
+      if (siblings) siblings.push(node);
+      else repliesByParent.set(c.parentId, [node]);
+    } else {
+      const list = commentsBySuggestion.get(c.suggestionId);
+      if (list) list.unshift(node);
+      else commentsBySuggestion.set(c.suggestionId, [node]);
+    }
+  }
+
+  for (const [parentId, replies] of repliesByParent) {
+    for (const list of commentsBySuggestion.values()) {
+      const parent = list.find((c) => c.id === parentId) as
+        | (CommentView & { replies: CommentView[] })
+        | undefined;
+      if (parent) {
+        parent.replies = replies;
+        break;
+      }
+    }
   }
 
   return rows.map((row) => {
-    const voters = bySuggestion.get(row.id) ?? [];
+    const voters = votesBySuggestion.get(row.id) ?? [];
     return {
       id: row.id,
       title: row.title,
@@ -226,6 +294,37 @@ export async function getSuggestions(
       votes: voters.length,
       voters,
       myVote: voters.includes(userId),
+      comments: commentsBySuggestion.get(row.id) ?? [],
+      commentCount: commentCountBySuggestion.get(row.id) ?? 0,
+      converted: convertedIds.has(row.id),
     };
   });
+}
+
+/**
+ * The trip's itinerary: committed items (converted ideas + organizer additions)
+ * with their author, ordered by day then explicit order. Newest-created breaks
+ * ties (the query's createdAt ascending feeds the stable sortItinerary).
+ */
+export async function getItinerary(
+  tripId: string,
+): Promise<ItineraryItemView[]> {
+  const rows = await db
+    .select({
+      id: tripItineraryItems.id,
+      title: tripItineraryItems.title,
+      note: tripItineraryItems.note,
+      url: tripItineraryItems.url,
+      date: tripItineraryItems.date,
+      sortOrder: tripItineraryItems.sortOrder,
+      createdBy: tripItineraryItems.createdBy,
+      createdByName: user.name,
+      sourceSuggestionId: tripItineraryItems.sourceSuggestionId,
+    })
+    .from(tripItineraryItems)
+    .innerJoin(user, eq(user.id, tripItineraryItems.createdBy))
+    .where(eq(tripItineraryItems.tripId, tripId))
+    .orderBy(asc(tripItineraryItems.createdAt));
+
+  return sortItinerary(rows);
 }

@@ -1,7 +1,7 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
-import { and, eq } from "drizzle-orm";
+import { and, eq, max } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
@@ -12,6 +12,8 @@ import {
   tripDateVotes,
   tripSuggestions,
   tripSuggestionVotes,
+  tripSuggestionComments,
+  tripItineraryItems,
 } from "@/lib/db/trips";
 import { assertMember } from "@/lib/trips/queries";
 import { nights, type Availability } from "@/lib/trips/dates";
@@ -508,4 +510,195 @@ export async function toggleSuggestionVote(
   }
 
   revalidatePath(`/trips/${suggestion.tripId}`);
+}
+
+/* ── Idea comments ────────────────────────────────────────────────────────── */
+
+/**
+ * Comment on an idea, or reply to a top-level comment. Any active member. Replies
+ * are single-level: replying to a reply is rejected.
+ */
+export async function addComment(
+  suggestionId: string,
+  body: string,
+  parentId?: string,
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+
+  const suggestion = await db.query.tripSuggestions.findFirst({
+    where: eq(tripSuggestions.id, suggestionId),
+    columns: { tripId: true },
+  });
+  if (!suggestion) return { error: "That idea no longer exists." };
+
+  const trip = await activeMemberTrip(suggestion.tripId, user.id);
+  if ("error" in trip) return trip;
+
+  const text = body.trim();
+  if (text.length < 1) return { error: "Write something first." };
+  if (text.length > 1000)
+    return { error: "Keep comments under 1000 characters." };
+
+  if (parentId) {
+    const parent = await db.query.tripSuggestionComments.findFirst({
+      where: eq(tripSuggestionComments.id, parentId),
+      columns: { suggestionId: true, parentId: true },
+    });
+    if (!parent || parent.suggestionId !== suggestionId)
+      return { error: "That comment no longer exists." };
+    if (parent.parentId) return { error: "You can only reply once deep." };
+  }
+
+  await db.insert(tripSuggestionComments).values({
+    id: randomUUID(),
+    suggestionId,
+    parentId: parentId ?? null,
+    userId: user.id,
+    body: text,
+  });
+
+  revalidatePath(`/trips/${suggestion.tripId}`);
+}
+
+/** Remove a comment (and any replies, via cascade). The author or the organizer only. */
+export async function removeComment(
+  commentId: string,
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+
+  const comment = await db.query.tripSuggestionComments.findFirst({
+    where: eq(tripSuggestionComments.id, commentId),
+    columns: { suggestionId: true, userId: true },
+  });
+  if (!comment) return;
+
+  const suggestion = await db.query.tripSuggestions.findFirst({
+    where: eq(tripSuggestions.id, comment.suggestionId),
+    columns: { tripId: true },
+  });
+  if (!suggestion) return;
+
+  const trip = await activeMemberTrip(suggestion.tripId, user.id);
+  if ("error" in trip) return trip;
+
+  const canRemove = comment.userId === user.id || trip.ownerId === user.id;
+  if (!canRemove) return { error: "You can't remove this comment." };
+
+  await db
+    .delete(tripSuggestionComments)
+    .where(eq(tripSuggestionComments.id, commentId));
+
+  revalidatePath(`/trips/${suggestion.tripId}`);
+}
+
+/* ── Itinerary ────────────────────────────────────────────────────────────── */
+
+/** The next sort position for a new item in a trip's itinerary. */
+async function nextItinerarySort(tripId: string): Promise<number> {
+  const [row] = await db
+    .select({ max: max(tripItineraryItems.sortOrder) })
+    .from(tripItineraryItems)
+    .where(eq(tripItineraryItems.tripId, tripId));
+  return (row?.max ?? -1) + 1;
+}
+
+/**
+ * Promote an idea to the itinerary. Organizer-only. Idempotent — the unique
+ * `sourceSuggestionId` means a second convert is a no-op and the idea stays on the
+ * board (now flagged "Added to itinerary").
+ */
+export async function convertSuggestion(
+  suggestionId: string,
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+
+  const suggestion = await db.query.tripSuggestions.findFirst({
+    where: eq(tripSuggestions.id, suggestionId),
+    columns: { tripId: true, title: true, note: true, url: true },
+  });
+  if (!suggestion) return { error: "That idea no longer exists." };
+
+  const trip = await ownedTrip(suggestion.tripId, user.id);
+  if (!trip) return { error: "Only the organizer can add to the itinerary." };
+  if (trip.archivedAt) return { error: "This trip is archived." };
+
+  await db
+    .insert(tripItineraryItems)
+    .values({
+      id: randomUUID(),
+      tripId: suggestion.tripId,
+      createdBy: user.id,
+      title: suggestion.title,
+      note: suggestion.note,
+      url: suggestion.url,
+      sortOrder: await nextItinerarySort(suggestion.tripId),
+      sourceSuggestionId: suggestionId,
+    })
+    .onConflictDoNothing();
+
+  revalidatePath(`/trips/${suggestion.tripId}`);
+}
+
+/** Raw form values for a manual itinerary item; note/url/date arrive as "" when omitted. */
+export interface ItineraryInput {
+  readonly title: string;
+  readonly note: string;
+  readonly url: string;
+  readonly date: string;
+}
+
+/** Add an itinerary item directly (not from an idea). Organizer-only. */
+export async function addItineraryItem(
+  tripId: string,
+  input: ItineraryInput,
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+
+  const trip = await ownedTrip(tripId, user.id);
+  if (!trip) return { error: "Only the organizer can add to the itinerary." };
+  if (trip.archivedAt) return { error: "This trip is archived." };
+
+  const title = input.title.trim();
+  if (title.length < 1) return { error: "Give the item a name." };
+  if (title.length > 120) return { error: "Keep the title under 120 characters." };
+
+  const note = input.note.trim();
+  if (note.length > 500) return { error: "Keep the note under 500 characters." };
+
+  const url = input.url.trim();
+  if (url && !/^https?:\/\/\S+$/i.test(url))
+    return { error: "Links must start with http:// or https://." };
+
+  await db.insert(tripItineraryItems).values({
+    id: randomUUID(),
+    tripId,
+    createdBy: user.id,
+    title,
+    note: note || null,
+    url: url || null,
+    date: input.date || null,
+    sortOrder: await nextItinerarySort(tripId),
+  });
+
+  revalidatePath(`/trips/${tripId}`);
+}
+
+/** Remove an itinerary item. Organizer-only. */
+export async function removeItineraryItem(
+  itemId: string,
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+
+  const item = await db.query.tripItineraryItems.findFirst({
+    where: eq(tripItineraryItems.id, itemId),
+    columns: { tripId: true },
+  });
+  if (!item) return;
+
+  const trip = await ownedTrip(item.tripId, user.id);
+  if (!trip) return { error: "Only the organizer can edit the itinerary." };
+
+  await db.delete(tripItineraryItems).where(eq(tripItineraryItems.id, itemId));
+
+  revalidatePath(`/trips/${item.tripId}`);
 }

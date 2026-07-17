@@ -4,11 +4,16 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
+import { CommentThread } from "@/components/trips/comment-thread";
 import { SuggestionForm } from "@/components/trips/suggestion-form";
 import { avatarColor } from "@/lib/avatar-color";
 import { rankSuggestions, type SuggestionView } from "@/lib/trips/suggestions";
 import type { TripMemberView } from "@/lib/trips/queries";
-import { removeSuggestion, toggleSuggestionVote } from "@/lib/trips/actions";
+import {
+  convertSuggestion,
+  removeSuggestion,
+  toggleSuggestionVote,
+} from "@/lib/trips/actions";
 import { cn } from "@/lib/utils";
 
 interface SuggestionListProps {
@@ -30,11 +35,21 @@ export function SuggestionList({
   readOnly,
 }: SuggestionListProps) {
   const [error, setError] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const [pending, startTransition] = useTransition();
   const router = useRouter();
 
   const ranked = rankSuggestions(suggestions);
   const memberById = new Map(members.map((m) => [m.id, m]));
+
+  function toggleExpanded(id: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
 
   function run(action: () => Promise<{ error: string } | void>) {
     setError(null);
@@ -76,6 +91,7 @@ export function SuggestionList({
             const canRemove =
               !readOnly &&
               (isOrganizer || suggestion.createdBy === currentUserId);
+            const isExpanded = expanded.has(suggestion.id);
 
             return (
               <Card key={suggestion.id} className="px-5 py-[18px]">
@@ -133,9 +149,28 @@ export function SuggestionList({
                     ) : null}
 
                     <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                      <span className="text-subtle-foreground text-[12.5px]">
-                        Added by {suggestion.createdByName}
-                      </span>
+                      <div className="flex items-center gap-3.5">
+                        <span className="text-subtle-foreground text-[12.5px]">
+                          Added by {suggestion.createdByName}
+                        </span>
+                        <button
+                          type="button"
+                          aria-expanded={isExpanded}
+                          onClick={() => toggleExpanded(suggestion.id)}
+                          className="text-subtle-foreground hover:text-ink text-[12.5px] transition-colors"
+                        >
+                          {suggestion.commentCount > 0
+                            ? `${suggestion.commentCount} comment${
+                                suggestion.commentCount === 1 ? "" : "s"
+                              }`
+                            : "Comment"}
+                        </button>
+                        {suggestion.converted ? (
+                          <span className="text-muted-foreground bg-muted rounded-full px-2 py-[2.5px] text-[10px] font-semibold tracking-[0.02em] uppercase">
+                            Added to itinerary
+                          </span>
+                        ) : null}
+                      </div>
                       <div className="flex items-center gap-3">
                         {suggestion.voters.length > 0 ? (
                           <div className="flex flex-wrap gap-[5px]">
@@ -153,6 +188,18 @@ export function SuggestionList({
                             })}
                           </div>
                         ) : null}
+                        {isOrganizer && !readOnly && !suggestion.converted ? (
+                          <button
+                            type="button"
+                            disabled={pending}
+                            onClick={() =>
+                              run(() => convertSuggestion(suggestion.id))
+                            }
+                            className="text-brand-ink text-[12.5px] font-medium hover:underline disabled:opacity-55"
+                          >
+                            Add to itinerary
+                          </button>
+                        ) : null}
                         {canRemove ? (
                           <button
                             type="button"
@@ -167,6 +214,16 @@ export function SuggestionList({
                         ) : null}
                       </div>
                     </div>
+
+                    {isExpanded ? (
+                      <CommentThread
+                        suggestionId={suggestion.id}
+                        comments={suggestion.comments}
+                        currentUserId={currentUserId}
+                        isOrganizer={isOrganizer}
+                        readOnly={readOnly}
+                      />
+                    ) : null}
                   </div>
                 </div>
               </Card>

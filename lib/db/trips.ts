@@ -4,9 +4,11 @@ import {
   pgEnum,
   text,
   date,
+  integer,
   timestamp,
   index,
   uniqueIndex,
+  type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import { user } from "./schema";
 
@@ -185,6 +187,74 @@ export const tripSuggestionVotes = pgTable(
   ],
 );
 
+/**
+ * Comments on an idea — one shallow thread. A top-level comment has `parentId`
+ * null; a reply points at a top-level comment (single-level only, enforced in the
+ * action). Cascades away with the suggestion, the parent comment, or the user.
+ */
+export const tripSuggestionComments = pgTable(
+  "trip_suggestion_comments",
+  {
+    id: text("id").primaryKey(),
+    suggestionId: text("suggestion_id")
+      .notNull()
+      .references(() => tripSuggestions.id, { onDelete: "cascade" }),
+    /** Null for a top-level comment; a top-level comment's id for a reply. */
+    parentId: text("parent_id").references(
+      (): AnyPgColumn => tripSuggestionComments.id,
+      { onDelete: "cascade" },
+    ),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("trip_suggestion_comments_suggestionId_idx").on(table.suggestionId),
+    index("trip_suggestion_comments_parentId_idx").on(table.parentId),
+  ],
+);
+
+/**
+ * The committed plan — items promoted from ideas (or added directly by the
+ * organizer). `sourceSuggestionId` links back to the idea it came from and is
+ * unique so an idea converts at most once; it's set null (not cascaded) if the
+ * idea is later removed, so the plan survives. `date`/`sortOrder` back the
+ * day-by-day view to come. Cascades away with the trip.
+ */
+export const tripItineraryItems = pgTable(
+  "trip_itinerary_items",
+  {
+    id: text("id").primaryKey(),
+    tripId: text("trip_id")
+      .notNull()
+      .references(() => trips.id, { onDelete: "cascade" }),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    note: text("note"),
+    url: text("url"),
+    /** Optional day within the trip window; null until scheduled. */
+    date: date("date"),
+    sortOrder: integer("sort_order").default(0).notNull(),
+    sourceSuggestionId: text("source_suggestion_id")
+      .unique()
+      .references(() => tripSuggestions.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index("trip_itinerary_items_tripId_idx").on(table.tripId)],
+);
+
 export const tripsRelations = relations(trips, ({ one, many }) => ({
   owner: one(user, {
     fields: [trips.ownerId],
@@ -193,6 +263,7 @@ export const tripsRelations = relations(trips, ({ one, many }) => ({
   members: many(tripMembers),
   dateOptions: many(tripDateOptions),
   suggestions: many(tripSuggestions),
+  itineraryItems: many(tripItineraryItems),
 }));
 
 export const tripMembersRelations = relations(tripMembers, ({ one }) => ({
@@ -244,6 +315,45 @@ export const tripSuggestionsRelations = relations(
       references: [user.id],
     }),
     votes: many(tripSuggestionVotes),
+    comments: many(tripSuggestionComments),
+  }),
+);
+
+export const tripSuggestionCommentsRelations = relations(
+  tripSuggestionComments,
+  ({ one, many }) => ({
+    suggestion: one(tripSuggestions, {
+      fields: [tripSuggestionComments.suggestionId],
+      references: [tripSuggestions.id],
+    }),
+    parent: one(tripSuggestionComments, {
+      fields: [tripSuggestionComments.parentId],
+      references: [tripSuggestionComments.id],
+      relationName: "commentReplies",
+    }),
+    replies: many(tripSuggestionComments, { relationName: "commentReplies" }),
+    user: one(user, {
+      fields: [tripSuggestionComments.userId],
+      references: [user.id],
+    }),
+  }),
+);
+
+export const tripItineraryItemsRelations = relations(
+  tripItineraryItems,
+  ({ one }) => ({
+    trip: one(trips, {
+      fields: [tripItineraryItems.tripId],
+      references: [trips.id],
+    }),
+    creator: one(user, {
+      fields: [tripItineraryItems.createdBy],
+      references: [user.id],
+    }),
+    source: one(tripSuggestions, {
+      fields: [tripItineraryItems.sourceSuggestionId],
+      references: [tripSuggestions.id],
+    }),
   }),
 );
 
@@ -267,3 +377,5 @@ export type TripDateOption = typeof tripDateOptions.$inferSelect;
 export type TripDateVote = typeof tripDateVotes.$inferSelect;
 export type TripSuggestion = typeof tripSuggestions.$inferSelect;
 export type TripSuggestionVote = typeof tripSuggestionVotes.$inferSelect;
+export type TripSuggestionComment = typeof tripSuggestionComments.$inferSelect;
+export type TripItineraryItem = typeof tripItineraryItems.$inferSelect;

@@ -4,6 +4,18 @@
  * plus a ranking pass that flags the leading pick.
  */
 
+/** A comment or reply on an idea. Replies are one level deep only. */
+export interface CommentView {
+  readonly id: string;
+  readonly body: string;
+  readonly createdBy: string;
+  readonly createdByName: string;
+  /** ISO timestamp; the client renders it with timeAgo(). */
+  readonly createdAt: string;
+  /** Replies to a top-level comment; always empty on a reply itself. */
+  readonly replies: readonly CommentView[];
+}
+
 export interface SuggestionView {
   readonly id: string;
   readonly title: string;
@@ -17,6 +29,12 @@ export interface SuggestionView {
   readonly voters: readonly string[];
   /** Whether the caller has upvoted. */
   readonly myVote: boolean;
+  /** Top-level comments, newest first, each with its replies. */
+  readonly comments: readonly CommentView[];
+  /** Total comments including replies. */
+  readonly commentCount: number;
+  /** Whether this idea has been promoted to the itinerary. */
+  readonly converted: boolean;
 }
 
 export interface RankedSuggestion extends SuggestionView {

@@ -64,3 +64,23 @@ export function relativeToNow(startDate: string | null): string {
   const months = Math.round(days / 30);
   return `in ${months} month${months === 1 ? "" : "s"}`;
 }
+
+/** Compact "time since" for comment timestamps: "just now" / "5m" / "3h" / "2d" / "Oct 12". */
+export function timeAgo(iso: string): string {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return "";
+
+  const seconds = Math.floor((Date.now() - then) / 1000);
+  if (seconds < 45) return "just now";
+
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h`;
+
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d`;
+
+  return monthDay(new Date(then));
+}
