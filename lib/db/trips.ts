@@ -132,6 +132,59 @@ export const tripDateVotes = pgTable(
   ],
 );
 
+/**
+ * Ideas board — the loose suggestions a crew tosses around (places, stays, links)
+ * before anything's decided. Anyone in the trip can add one. Ordered by upvotes at
+ * read time; cascades away with the trip. Deferred: comments, "convert to itinerary".
+ */
+export const tripSuggestions = pgTable(
+  "trip_suggestions",
+  {
+    id: text("id").primaryKey(),
+    tripId: text("trip_id")
+      .notNull()
+      .references(() => trips.id, { onDelete: "cascade" }),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    note: text("note"),
+    /** Optional link (a listing, map pin, article). Null when it's just a note. */
+    url: text("url"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index("trip_suggestions_tripId_idx").on(table.tripId)],
+);
+
+/**
+ * One row per (suggestion, member) — a simple upvote. Toggled on the client, so a
+ * repeat vote removes the row. Cascades away with the suggestion or the user.
+ */
+export const tripSuggestionVotes = pgTable(
+  "trip_suggestion_votes",
+  {
+    id: text("id").primaryKey(),
+    suggestionId: text("suggestion_id")
+      .notNull()
+      .references(() => tripSuggestions.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("trip_suggestion_votes_suggestion_user_idx").on(
+      table.suggestionId,
+      table.userId,
+    ),
+    index("trip_suggestion_votes_suggestionId_idx").on(table.suggestionId),
+  ],
+);
+
 export const tripsRelations = relations(trips, ({ one, many }) => ({
   owner: one(user, {
     fields: [trips.ownerId],
@@ -139,6 +192,7 @@ export const tripsRelations = relations(trips, ({ one, many }) => ({
   }),
   members: many(tripMembers),
   dateOptions: many(tripDateOptions),
+  suggestions: many(tripSuggestions),
 }));
 
 export const tripMembersRelations = relations(tripMembers, ({ one }) => ({
@@ -178,7 +232,38 @@ export const tripDateVotesRelations = relations(tripDateVotes, ({ one }) => ({
   }),
 }));
 
+export const tripSuggestionsRelations = relations(
+  tripSuggestions,
+  ({ one, many }) => ({
+    trip: one(trips, {
+      fields: [tripSuggestions.tripId],
+      references: [trips.id],
+    }),
+    creator: one(user, {
+      fields: [tripSuggestions.createdBy],
+      references: [user.id],
+    }),
+    votes: many(tripSuggestionVotes),
+  }),
+);
+
+export const tripSuggestionVotesRelations = relations(
+  tripSuggestionVotes,
+  ({ one }) => ({
+    suggestion: one(tripSuggestions, {
+      fields: [tripSuggestionVotes.suggestionId],
+      references: [tripSuggestions.id],
+    }),
+    user: one(user, {
+      fields: [tripSuggestionVotes.userId],
+      references: [user.id],
+    }),
+  }),
+);
+
 export type Trip = typeof trips.$inferSelect;
 export type TripMember = typeof tripMembers.$inferSelect;
 export type TripDateOption = typeof tripDateOptions.$inferSelect;
 export type TripDateVote = typeof tripDateVotes.$inferSelect;
+export type TripSuggestion = typeof tripSuggestions.$inferSelect;
+export type TripSuggestionVote = typeof tripSuggestionVotes.$inferSelect;

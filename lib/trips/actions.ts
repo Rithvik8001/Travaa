@@ -10,6 +10,8 @@ import {
   tripMembers,
   tripDateOptions,
   tripDateVotes,
+  tripSuggestions,
+  tripSuggestionVotes,
 } from "@/lib/db/trips";
 import { assertMember } from "@/lib/trips/queries";
 import { nights, type Availability } from "@/lib/trips/dates";
@@ -403,4 +405,107 @@ export async function unlockDates(
   await db.update(trips).set({ datesLockedAt: null }).where(eq(trips.id, tripId));
 
   revalidatePath(`/trips/${tripId}`);
+}
+
+/* ── Ideas board ──────────────────────────────────────────────────────────── */
+
+/** Raw form values for a new idea; note/url arrive as "" when omitted. */
+export interface SuggestionInput {
+  readonly title: string;
+  readonly note: string;
+  readonly url: string;
+}
+
+/** Add an idea. Any active member. */
+export async function proposeSuggestion(
+  tripId: string,
+  input: SuggestionInput,
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+
+  const trip = await activeMemberTrip(tripId, user.id);
+  if ("error" in trip) return trip;
+
+  const title = input.title.trim();
+  if (title.length < 1) return { error: "Give your idea a name." };
+  if (title.length > 120) return { error: "Keep the title under 120 characters." };
+
+  const note = input.note.trim();
+  if (note.length > 500) return { error: "Keep the note under 500 characters." };
+
+  const url = input.url.trim();
+  if (url && !/^https?:\/\/\S+$/i.test(url))
+    return { error: "Links must start with http:// or https://." };
+
+  await db.insert(tripSuggestions).values({
+    id: randomUUID(),
+    tripId,
+    createdBy: user.id,
+    title,
+    note: note || null,
+    url: url || null,
+  });
+
+  revalidatePath(`/trips/${tripId}`);
+}
+
+/** Remove an idea. The author or the organizer only. */
+export async function removeSuggestion(
+  suggestionId: string,
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+
+  const suggestion = await db.query.tripSuggestions.findFirst({
+    where: eq(tripSuggestions.id, suggestionId),
+    columns: { tripId: true, createdBy: true },
+  });
+  if (!suggestion) return;
+
+  const trip = await activeMemberTrip(suggestion.tripId, user.id);
+  if ("error" in trip) return trip;
+
+  const canRemove =
+    suggestion.createdBy === user.id || trip.ownerId === user.id;
+  if (!canRemove) return { error: "You can't remove this idea." };
+
+  await db.delete(tripSuggestions).where(eq(tripSuggestions.id, suggestionId));
+
+  revalidatePath(`/trips/${suggestion.tripId}`);
+}
+
+/** Toggle the caller's upvote on an idea. Any active member. */
+export async function toggleSuggestionVote(
+  suggestionId: string,
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+
+  const suggestion = await db.query.tripSuggestions.findFirst({
+    where: eq(tripSuggestions.id, suggestionId),
+    columns: { tripId: true },
+  });
+  if (!suggestion) return { error: "That idea no longer exists." };
+
+  const trip = await activeMemberTrip(suggestion.tripId, user.id);
+  if ("error" in trip) return trip;
+
+  const existing = await db.query.tripSuggestionVotes.findFirst({
+    where: and(
+      eq(tripSuggestionVotes.suggestionId, suggestionId),
+      eq(tripSuggestionVotes.userId, user.id),
+    ),
+    columns: { id: true },
+  });
+
+  if (existing) {
+    await db
+      .delete(tripSuggestionVotes)
+      .where(eq(tripSuggestionVotes.id, existing.id));
+  } else {
+    await db
+      .insert(tripSuggestionVotes)
+      .values({ id: randomUUID(), suggestionId, userId: user.id })
+      .onConflictDoNothing();
+  }
+
+  revalidatePath(`/trips/${suggestion.tripId}`);
 }

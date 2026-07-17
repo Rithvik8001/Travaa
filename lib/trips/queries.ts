@@ -11,9 +11,17 @@ import {
   isNull,
 } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { trips, tripMembers, tripDateOptions, tripDateVotes } from "@/lib/db/trips";
+import {
+  trips,
+  tripMembers,
+  tripDateOptions,
+  tripDateVotes,
+  tripSuggestions,
+  tripSuggestionVotes,
+} from "@/lib/db/trips";
 import { user } from "@/lib/db/schema";
 import type { Availability, DateOptionView } from "@/lib/trips/dates";
+import type { SuggestionView } from "@/lib/trips/suggestions";
 
 /** Active trips the user belongs to, newest first. "Your trips" for the dashboard. */
 export async function listTripsForUser(userId: string) {
@@ -157,6 +165,67 @@ export async function getDatePoll(
       counts: { yes, maybe, no, available: yes + maybe, total },
       myValue,
       responses,
+    };
+  });
+}
+
+/**
+ * The trip's ideas board: every suggestion with its author, upvote tally, the
+ * voters (for the avatar stack) and whether the caller has voted. Ordered newest
+ * first; the client applies rankSuggestions() for display / "Top pick".
+ */
+export async function getSuggestions(
+  tripId: string,
+  userId: string,
+): Promise<SuggestionView[]> {
+  const rows = await db
+    .select({
+      id: tripSuggestions.id,
+      title: tripSuggestions.title,
+      note: tripSuggestions.note,
+      url: tripSuggestions.url,
+      createdBy: tripSuggestions.createdBy,
+      createdByName: user.name,
+    })
+    .from(tripSuggestions)
+    .innerJoin(user, eq(user.id, tripSuggestions.createdBy))
+    .where(eq(tripSuggestions.tripId, tripId))
+    .orderBy(desc(tripSuggestions.createdAt));
+
+  if (rows.length === 0) return [];
+
+  const votes = await db
+    .select({
+      suggestionId: tripSuggestionVotes.suggestionId,
+      userId: tripSuggestionVotes.userId,
+    })
+    .from(tripSuggestionVotes)
+    .where(
+      inArray(
+        tripSuggestionVotes.suggestionId,
+        rows.map((r) => r.id),
+      ),
+    );
+
+  const bySuggestion = new Map<string, string[]>();
+  for (const vote of votes) {
+    const list = bySuggestion.get(vote.suggestionId);
+    if (list) list.push(vote.userId);
+    else bySuggestion.set(vote.suggestionId, [vote.userId]);
+  }
+
+  return rows.map((row) => {
+    const voters = bySuggestion.get(row.id) ?? [];
+    return {
+      id: row.id,
+      title: row.title,
+      note: row.note,
+      url: row.url,
+      createdBy: row.createdBy,
+      createdByName: row.createdByName,
+      votes: voters.length,
+      voters,
+      myVote: voters.includes(userId),
     };
   });
 }
