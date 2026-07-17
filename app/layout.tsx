@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
-import { Newsreader } from "next/font/google";
-import { cn } from "@/lib/utils";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const newsreader = Newsreader({
+const inter = Inter({
   subsets: ["latin"],
-  style: ["normal", "italic"],
+  variable: "--font-inter",
   display: "swap",
-  variable: "--font-newsreader",
 });
 
 export const metadata: Metadata = {
@@ -28,9 +26,9 @@ export default function RootLayout({
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={cn("h-full scroll-smooth", newsreader.variable)}
+      className={`h-full scroll-smooth ${inter.variable}`}
     >
-      <body className="flex min-h-full flex-col overflow-x-hidden">
+      <body className="flex min-h-full flex-col overflow-x-hidden antialiased">
         {children}
       </body>
     </html>

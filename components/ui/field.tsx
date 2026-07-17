@@ -21,8 +21,8 @@ export function Field({ label, error, children }: FieldProps) {
   const errorId = `${id}-error`;
 
   return (
-    <div className="flex flex-col gap-[7px]">
-      <label htmlFor={id} className="text-foreground text-[13.5px] font-medium">
+    <div className="flex flex-col gap-[6px]">
+      <label htmlFor={id} className="text-foreground text-[13px] font-medium tracking-[-0.01em]">
         {label}
       </label>
       {children({

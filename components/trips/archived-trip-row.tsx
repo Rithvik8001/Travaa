@@ -15,11 +15,11 @@ export function ArchivedTripRow({ trip }: { readonly trip: Trip }) {
   return (
     <Link
       href={`/trips/${trip.id}`}
-      className="border-hairline bg-surface-sunken hover:bg-muted flex items-center gap-4 rounded-[16px] border px-5 py-[14px] transition-colors"
+      className="border-hairline bg-surface-sunken hover:bg-muted flex items-center gap-4 rounded-[10px] border px-5 py-[14px] transition-colors"
     >
       <span
         aria-hidden
-        className="size-10 shrink-0 rounded-[11px] opacity-70"
+        className="size-10 shrink-0 rounded-[8px] opacity-60"
         style={{ background: tripCover(trip.id) }}
       />
       <span className="min-w-0 flex-1">

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { CtaLink } from "@/components/ui/cta-link";
 import { Wordmark } from "@/components/ui/wordmark";
 import { MemberStack } from "@/components/trips/member-stack";
@@ -45,17 +46,17 @@ export default async function JoinPage({
       <div className="animate-pop w-full max-w-[400px]">
         <Wordmark className="mb-7 justify-center" />
 
-        <div className="bg-surface border-hairline shadow-dialog overflow-hidden rounded-[22px] border">
+        <Card className="shadow-dialog overflow-hidden">
           <div
-            className="relative h-[150px]"
+            className="relative h-[140px]"
             style={{ background: tripCover(trip.id) }}
           >
-            <div className="absolute inset-0 flex items-end bg-gradient-to-b from-transparent to-black/40 p-[18px]">
+            <div className="absolute inset-0 flex items-end bg-gradient-to-b from-transparent to-black/20 p-[18px]">
               <MemberStack members={members} max={5} />
             </div>
           </div>
 
-          <div className="px-6 pt-[26px] pb-6 text-center">
+          <div className="px-6 pt-6 pb-6 text-center">
             {alreadyMember ? (
               <p className="text-subtle-foreground mb-1.5 text-[13.5px]">
                 You&rsquo;re already in
@@ -66,7 +67,7 @@ export default async function JoinPage({
                 invited you to
               </p>
             )}
-            <h1 className="text-ink text-[22px] font-semibold tracking-[-0.02em]">
+            <h1 className="text-ink text-[21px] font-semibold tracking-[-0.02em]">
               {trip.name}
             </h1>
             <p className="text-subtle-foreground mt-1 mb-[22px] text-[14px]">
@@ -119,7 +120,7 @@ export default async function JoinPage({
               </>
             )}
           </div>
-        </div>
+        </Card>
       </div>
     </main>
   );

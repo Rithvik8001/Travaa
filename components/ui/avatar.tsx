@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
-/** Warm ink that reads on every avatar tint in the crew palette. */
-const AVATAR_INK = "oklch(0.32 0.04 60)";
+/** Cool ink that reads on every tint in the crew palette. */
+const AVATAR_INK = "oklch(0.35 0.02 277)";
 
 interface AvatarProps {
   readonly initial: string;

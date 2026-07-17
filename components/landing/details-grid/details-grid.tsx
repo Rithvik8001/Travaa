@@ -6,7 +6,7 @@ export function DetailsGrid() {
     <section>
       <Container className="py-[92px]">
         <div className="grid gap-[30px] min-[900px]:grid-cols-[0.7fr_1.3fr] min-[900px]:gap-[60px]">
-          <h2 className="text-ink text-[30px] leading-[1.18] font-semibold tracking-[-0.025em]">
+          <h2 className="text-ink text-[30px] leading-[1.16] font-semibold tracking-[-0.03em]">
             The quiet details that hold a trip together.
           </h2>
 

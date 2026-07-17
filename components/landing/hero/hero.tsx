@@ -1,44 +1,43 @@
-import Link from "next/link";
-import { ChaosCluster } from "./chaos-cluster";
 import { Container } from "@/components/ui/container";
 import { CtaLink } from "@/components/ui/cta-link";
+import { Eyebrow } from "@/components/ui/eyebrow";
 
 export function Hero() {
   return (
-    <section>
-      <Container className="pt-[88px] pb-[30px]">
-        <div className="grid items-center gap-11 min-[900px]:grid-cols-[1.05fr_0.95fr] min-[900px]:gap-14">
-          <div>
-            <h1 className="text-ink mb-[26px] text-[33px] leading-[1.03] font-semibold tracking-[-0.035em] min-[560px]:text-[42px] min-[900px]:text-[60px]">
-              The trip everyone wants to take
-              <span className="text-brand-quiet mt-1 block font-serif font-medium tracking-[-0.015em] italic">
-                keeps dying in the group chat.
-              </span>
-            </h1>
+    <section className="relative overflow-hidden">
+      {/* A whisper of warmth behind the headline — barely there. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-32 left-1/2 h-[440px] w-[720px] max-w-[110vw] -translate-x-1/2 rounded-full opacity-40 blur-[130px]"
+        style={{
+          background:
+            "radial-gradient(closest-side, oklch(0.88 0.05 264 / 0.35), transparent)",
+        }}
+      />
 
-            <p className="mb-8 max-w-[480px] text-[18.5px] leading-[1.58] text-muted-foreground">
-              Dates, ideas, the itinerary, and who-paid-for-what — all in one quiet
-              place. Travaa turns “we should totally do this” into actual boarding
-              passes.
-            </p>
+      <Container className="relative flex flex-col items-center pt-[84px] pb-[72px] text-center min-[900px]:pt-[104px]">
+        <Eyebrow className="mb-7">Group trips, minus the chaos</Eyebrow>
 
-            <div className="flex flex-col items-start gap-4 min-[560px]:flex-row min-[560px]:items-center min-[560px]:gap-[22px]">
-              <CtaLink href="/sign-up">Start a trip — it&apos;s free</CtaLink>
-              <Link
-                href="#story"
-                className="text-[15.5px] font-medium text-muted-foreground hover:text-ink transition-colors"
-              >
-                See how it plays out ↓
-              </Link>
-            </div>
+        <h1 className="text-ink mx-auto max-w-[14ch] text-[40px] leading-[1.03] font-semibold tracking-[-0.038em] text-balance min-[560px]:text-[54px] min-[900px]:text-[64px]">
+          The trip everyone wants to take keeps dying in the group chat.
+        </h1>
 
-            <p className="text-subtle-foreground mt-7 text-[13.5px]">
-              No card. Invite by link. Your crew joins in a tap.
-            </p>
-          </div>
+        <p className="text-muted-foreground mx-auto mt-6 max-w-[500px] text-[17.5px] leading-[1.6] text-balance min-[560px]:text-[18.5px]">
+          Dates, ideas, the itinerary, and who-paid-for-what — all in one calm
+          place. Travaa turns “we should totally do this” into actual boarding
+          passes.
+        </p>
 
-          <ChaosCluster />
+        <div className="mt-9 flex flex-col items-center gap-3.5 min-[560px]:flex-row">
+          <CtaLink href="/sign-up">Start a trip — it&apos;s free</CtaLink>
+          <CtaLink href="#story" variant="outline">
+            See how it works
+          </CtaLink>
         </div>
+
+        <p className="text-subtle-foreground mt-7 text-[13.5px]">
+          No card. Invite by link. Your crew joins in a tap.
+        </p>
       </Container>
     </section>
   );

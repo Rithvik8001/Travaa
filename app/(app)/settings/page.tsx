@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ProfileForm } from "@/components/settings/profile-form";
+import { Card } from "@/components/ui/card";
 import { requireSession } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Profile" };
@@ -20,21 +21,21 @@ export default async function SettingsPage() {
         Trips
       </Link>
 
-      <h1 className="text-ink text-[32px] font-semibold tracking-[-0.025em]">
+      <h1 className="text-ink text-[32px] font-semibold tracking-[-0.03em]">
         Profile
       </h1>
       <p className="text-subtle-foreground mt-1 mb-[26px] text-[15px]">
         How your crew sees you.
       </p>
 
-      <div className="bg-surface border-hairline shadow-card rounded-[18px] border p-6">
+      <Card className="p-6">
         <ProfileForm
           defaultValues={{
             name: user.name,
             username: user.displayUsername ?? user.username ?? "",
           }}
         />
-      </div>
+      </Card>
     </main>
   );
 }

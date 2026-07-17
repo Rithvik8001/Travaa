@@ -8,11 +8,11 @@ export function HowItWorks() {
       className="border-hairline bg-muted scroll-mt-[66px] border-y"
     >
       <Container className="py-[92px]">
-        <h2 className="text-ink mb-14 font-serif text-[34px] font-medium tracking-[-0.015em]">
+        <h2 className="text-ink mb-14 text-[32px] font-semibold tracking-[-0.03em]">
           Three steps from group chat to gate.
         </h2>
 
-        <ol className="grid border-t border-[oklch(0.9_0.004_90)] min-[900px]:grid-cols-3">
+        <ol className="border-border grid border-t min-[900px]:grid-cols-3">
           {STEPS.map((step, index) => (
             <li
               key={step.n}
@@ -28,7 +28,7 @@ export function HowItWorks() {
             >
               <div
                 aria-hidden
-                className="mb-5 font-serif text-[40px] leading-none font-medium text-[oklch(0.75_0.03_255)]"
+                className="bg-brand/10 text-brand-ink mb-5 flex size-8 items-center justify-center rounded-full text-[14px] font-semibold tabular-nums"
               >
                 {step.n}
               </div>

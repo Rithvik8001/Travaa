@@ -3,13 +3,13 @@ export function BrowserChrome({ url }: Readonly<{ url: string }>) {
   return (
     <div
       aria-hidden
-      className="bg-surface-sunken flex h-11 items-center gap-2 border-b border-[oklch(0.94_0.004_90)] px-[18px]"
+      className="bg-surface-sunken border-hairline flex h-11 items-center gap-2 border-b px-[18px]"
     >
-      <span className="size-[11px] rounded-full bg-[oklch(0.85_0.06_25)]" />
-      <span className="size-[11px] rounded-full bg-[oklch(0.88_0.07_90)]" />
-      <span className="size-[11px] rounded-full bg-[oklch(0.85_0.07_150)]" />
+      <span className="size-[10px] rounded-full bg-[oklch(0.86_0_0)]" />
+      <span className="size-[10px] rounded-full bg-[oklch(0.86_0_0)]" />
+      <span className="size-[10px] rounded-full bg-[oklch(0.86_0_0)]" />
       <div className="flex flex-1 justify-center">
-        <div className="text-subtle-foreground rounded-[7px] bg-[oklch(0.96_0.004_90)] px-8 py-1 text-[12.5px] min-[560px]:px-16">
+        <div className="text-subtle-foreground bg-surface border-hairline rounded-[7px] border px-8 py-1 text-[12.5px] min-[560px]:px-16">
           {url}
         </div>
       </div>

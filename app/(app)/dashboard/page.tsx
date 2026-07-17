@@ -4,6 +4,7 @@ import { SignOutButton } from "@/components/dashboard/sign-out-button";
 import { ArchivedTripRow } from "@/components/trips/archived-trip-row";
 import { TripListRow } from "@/components/trips/trip-list-row";
 import { Avatar } from "@/components/ui/avatar";
+import { Card } from "@/components/ui/card";
 import { Wordmark } from "@/components/ui/wordmark";
 import { avatarColor } from "@/lib/avatar-color";
 import { listArchivedTripsForUser, listTripsForUser } from "@/lib/trips/queries";
@@ -38,7 +39,7 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      <h1 className="text-ink text-[32px] font-semibold tracking-[-0.025em]">
+      <h1 className="text-ink text-[32px] font-semibold tracking-[-0.03em]">
         Your trips
       </h1>
       <p className="text-subtle-foreground mt-1 mb-[30px] text-[15px]">
@@ -47,7 +48,7 @@ export default async function DashboardPage() {
           : `${trips.length} trip${trips.length === 1 ? "" : "s"}`}
       </p>
 
-      <div className="bg-surface border-hairline shadow-card overflow-hidden rounded-[18px] border">
+      <Card className="overflow-hidden">
         {trips.length === 0 ? (
           <p className="text-subtle-foreground mx-auto max-w-[42ch] px-5 py-11 text-center text-[14.5px] leading-[1.55]">
             Your trips will live here. Start one, share the link, and your crew
@@ -65,7 +66,7 @@ export default async function DashboardPage() {
           </span>
           Start a new trip
         </Link>
-      </div>
+      </Card>
 
       {archived.length > 0 ? (
         <section className="mt-[34px]">

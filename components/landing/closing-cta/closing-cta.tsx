@@ -5,9 +5,9 @@ export function ClosingCta() {
   return (
     <section className="border-hairline border-t">
       <div className="mx-auto w-full max-w-[760px] px-[22px] pt-[104px] pb-[112px] text-center min-[560px]:px-10">
-        <h2 className="text-ink mx-auto mb-[22px] max-w-[600px] text-[31px] leading-[1.08] font-semibold tracking-[-0.032em] text-balance min-[560px]:text-[44px]">
+        <h2 className="text-ink mx-auto mb-[22px] max-w-[620px] text-[32px] leading-[1.05] font-semibold tracking-[-0.04em] text-balance min-[560px]:text-[46px]">
           Right now, somebody&apos;s group chat is stalling.
-          <span className="text-brand-quiet mt-1.5 block font-serif font-medium italic">
+          <span className="text-subtle-foreground mt-2 block font-normal">
             Go be the one who starts the trip.
           </span>
         </h2>

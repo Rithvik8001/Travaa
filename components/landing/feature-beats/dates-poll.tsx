@@ -1,16 +1,19 @@
 import { AVAILABILITY_COLOR, CREW } from "@/components/landing/content";
 import { Avatar } from "@/components/ui/avatar";
+import { Card } from "@/components/ui/card";
 
 /** Beat 01 visual: the availability poll pointing at the winning window. */
 export function DatesPoll() {
   return (
     <div className="relative">
-      <div className="bg-surface rounded-[18px] border border-[oklch(0.82_0.06_150)] px-6 py-[22px] shadow-[0_30px_60px_-40px_oklch(0.4_0.04_150/0.3)]">
+      <Card className="shadow-lift px-6 py-[22px]">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-[9px]">
-              <span className="text-ink text-[17px] font-semibold">Oct 12–16</span>
-              <span className="rounded-md bg-[oklch(0.93_0.03_150)] px-2 py-[3px] text-[10px] font-semibold tracking-[0.04em] text-[oklch(0.42_0.09_150)] uppercase">
+              <span className="text-ink text-[17px] font-semibold tracking-[-0.01em]">
+                Oct 12–16
+              </span>
+              <span className="bg-brand/12 text-brand-ink rounded-full px-2.5 py-[3px] text-[10.5px] font-semibold tracking-[0.02em] uppercase">
                 Best fit
               </span>
             </div>
@@ -19,7 +22,7 @@ export function DatesPoll() {
             </div>
           </div>
           <div className="text-right">
-            <div className="text-positive text-lg font-semibold">5/6</div>
+            <div className="text-ink text-lg font-semibold tabular-nums">5/6</div>
             <div className="text-subtle-foreground text-[11.5px]">available</div>
           </div>
         </div>
@@ -36,9 +39,9 @@ export function DatesPoll() {
             />
           ))}
         </div>
-      </div>
+      </Card>
 
-      <div className="absolute -right-2 -bottom-[30px] -rotate-[2deg] rounded-[11px] bg-[oklch(0.22_0.006_90)] px-3.5 py-[9px] text-[13px] text-[oklch(0.92_0.006_90)] shadow-[0_14px_30px_-16px_oklch(0.3_0.02_90/0.5)]">
+      <div className="bg-ink absolute -right-2 -bottom-[30px] -rotate-[2deg] rounded-[10px] px-3.5 py-[9px] text-[13px] text-[oklch(0.94_0.008_80)] shadow-float">
         Noah&apos;s a maybe. Noah&apos;s always a maybe.
       </div>
     </div>

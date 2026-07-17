@@ -1,5 +1,6 @@
 import { CREW } from "@/components/landing/content";
 import { Avatar } from "@/components/ui/avatar";
+import { Card } from "@/components/ui/card";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { BrowserChrome } from "./browser-chrome";
@@ -16,7 +17,7 @@ const STATS: readonly Stat[] = [
     label: "Dates",
     value: "Oct 12–16",
     note: "✓ Locked",
-    noteClassName: "text-positive",
+    noteClassName: "text-foreground",
   },
   {
     label: "Ideas",
@@ -34,7 +35,7 @@ const STATS: readonly Stat[] = [
     label: "Budget",
     value: "€2,378",
     note: "+€64 you",
-    noteClassName: "text-positive",
+    noteClassName: "text-foreground",
   },
 ];
 
@@ -43,14 +44,14 @@ export function TripPreview() {
   return (
     <section id="story" className="scroll-mt-[66px]">
       <Container className="pt-20 pb-5">
-        <div className="mb-11 max-w-[640px]">
-          <Eyebrow className="mb-4 text-[13px]">One place instead of seven</Eyebrow>
-          <h2 className="text-ink font-serif text-[38px] leading-[1.18] font-medium tracking-[-0.015em] text-balance">
-            So we built the calm room where the trip actually gets decided.
+        <div className="mx-auto mb-11 max-w-[600px] text-center">
+          <Eyebrow className="mb-5">One place instead of seven</Eyebrow>
+          <h2 className="text-ink text-[32px] leading-[1.1] font-semibold tracking-[-0.035em] text-balance min-[560px]:text-[40px]">
+            The calm room where the trip actually gets decided.
           </h2>
         </div>
 
-        <div className="border-border bg-surface shadow-panel overflow-hidden rounded-[22px] border">
+        <Card className="shadow-lift mx-auto max-w-[900px] overflow-hidden">
           <BrowserChrome url="travaa.app/lisbon" />
 
           <div className="bg-surface-sunken px-[22px] pt-8 pb-9 min-[560px]:px-9">
@@ -59,7 +60,7 @@ export function TripPreview() {
                 <div className="text-subtle-foreground mb-[5px] text-[13px]">
                   Planning · locked for Oct 12–16
                 </div>
-                <div className="text-ink text-[27px] font-semibold tracking-[-0.025em]">
+                <div className="text-ink text-[27px] font-semibold tracking-[-0.03em]">
                   Lisbon with the crew
                 </div>
               </div>
@@ -79,12 +80,12 @@ export function TripPreview() {
               {STATS.map((stat) => (
                 <div
                   key={stat.label}
-                  className="border-hairline bg-surface rounded-[14px] border p-[15px]"
+                  className="border-hairline bg-surface rounded-[13px] border p-[15px]"
                 >
-                  <div className="text-subtle-foreground mb-2 text-[11px] font-semibold tracking-[0.04em] uppercase">
+                  <div className="text-subtle-foreground mb-2 text-[11px] font-semibold tracking-[0.03em] uppercase">
                     {stat.label}
                   </div>
-                  <div className="text-ink text-[17px] font-semibold">
+                  <div className="text-ink text-[17px] font-semibold tracking-[-0.01em]">
                     {stat.value}
                   </div>
                   <div className={`mt-0.5 text-xs ${stat.noteClassName}`}>
@@ -94,7 +95,7 @@ export function TripPreview() {
               ))}
             </div>
           </div>
-        </div>
+        </Card>
       </Container>
     </section>
   );

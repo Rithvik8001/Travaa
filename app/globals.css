@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 /**
- * Travaa design tokens.
- * Warm neutral paper, near-black ink, restrained blue accent.
+ * Travaa design tokens — "warm premium minimal", set in Inter.
+ * A warm ivory canvas, warm-neutral ink, one considered blue accent, soft warm
+ * depth. Minimalism with soul: whitespace, restraint, and craft in the details.
  * Every token below is in use — add one only when a component needs it.
  */
 @theme inline {
@@ -20,31 +21,46 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-brand: var(--brand);
   --color-brand-ink: var(--brand-ink);
-  --color-brand-quiet: var(--brand-quiet);
-  --color-positive: var(--positive);
   --color-danger: var(--danger);
   --color-ring: var(--ring);
 
   --font-sans: var(--sans-stack);
-  --font-serif: var(--font-newsreader);
   --font-mono: var(--mono-stack);
 
-  --shadow-float: 0 12px 30px -14px oklch(0.4 0.02 90 / 0.3);
-  --shadow-lift: 0 30px 60px -40px oklch(0.4 0.03 90 / 0.3);
+  /* Restrained, warm-tinted depth — barely there; hairlines do most of the work. */
+  --shadow-card:
+    0 1px 2px oklch(0.3 0.02 70 / 0.03), 0 4px 12px -6px oklch(0.3 0.02 70 / 0.06),
+    0 16px 32px -24px oklch(0.3 0.02 70 / 0.08);
+  --shadow-dialog:
+    0 1px 2px oklch(0.3 0.02 70 / 0.04), 0 18px 44px -20px oklch(0.3 0.02 70 / 0.15);
+  --shadow-float:
+    0 1px 2px oklch(0.3 0.02 70 / 0.03), 0 8px 22px -12px oklch(0.3 0.02 70 / 0.1);
+  --shadow-lift:
+    0 1px 2px oklch(0.3 0.02 70 / 0.03), 0 18px 40px -26px oklch(0.3 0.02 70 / 0.12);
   --shadow-panel:
-    0 2px 4px oklch(0.4 0.02 90 / 0.04), 0 44px 90px -44px oklch(0.4 0.03 90 / 0.32);
+    0 1px 2px oklch(0.3 0.02 70 / 0.04), 0 30px 64px -40px oklch(0.3 0.02 70 / 0.15);
 
-  /* App surfaces: a hairline lift for lists, a real one for centered cards. */
-  --shadow-card: 0 1px 2px oklch(0.5 0.01 90 / 0.04);
-  --shadow-dialog: 0 20px 50px -24px oklch(0.4 0.02 90 / 0.28);
+  /* Layered tactile button — gloss line, inner ring, crisp edge, soft halo, drop. */
+  --shadow-button:
+    inset 0 1px 0 0 oklch(0.86 0.08 264 / 0.6), inset 0 0 0 1px oklch(0.74 0.13 265 / 0.4),
+    0 0 0 1px oklch(0.49 0.2 268), 0 0 0 4px oklch(0.6 0.19 266 / 0.13),
+    0 4px 10px -2px oklch(0.5 0.2 267 / 0.38), 0 12px 26px -8px oklch(0.5 0.21 267 / 0.42);
+  --shadow-button-hover:
+    inset 0 1px 0 0 oklch(0.88 0.08 264 / 0.65), inset 0 0 0 1px oklch(0.76 0.13 265 / 0.45),
+    0 0 0 1px oklch(0.49 0.2 268), 0 0 0 5px oklch(0.6 0.19 266 / 0.16),
+    0 6px 14px -2px oklch(0.5 0.2 267 / 0.42), 0 16px 32px -8px oklch(0.5 0.21 267 / 0.48);
+  --shadow-button-active:
+    inset 0 1px 0 0 oklch(0.82 0.08 264 / 0.5), inset 0 2px 5px 0 oklch(0.4 0.2 268 / 0.35),
+    0 0 0 1px oklch(0.49 0.2 268), 0 0 0 4px oklch(0.6 0.19 266 / 0.12),
+    0 2px 6px -2px oklch(0.5 0.2 267 / 0.35);
 
-  --animate-pop: pop 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  --animate-pop: pop 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes pop {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.98);
+    transform: translateY(8px) scale(0.99);
   }
   to {
     opacity: 1;
@@ -54,34 +70,37 @@
 
 :root {
   --sans-stack:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-  --mono-stack: ui-monospace, Menlo, Monaco, "Cascadia Mono", monospace;
+    var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
+    Arial, sans-serif;
+  --mono-stack: ui-monospace, "SF Mono", Menlo, Monaco, "Cascadia Mono", monospace;
 
-  /* Surfaces */
-  --background: oklch(0.975 0.004 90);
-  --surface: oklch(1 0 0);
-  --surface-sunken: oklch(0.985 0.003 90);
-  --muted: oklch(0.965 0.005 90);
+  /* Surfaces — a calm off-white with just a whisper of warmth */
+  --background: oklch(0.986 0.004 83);
+  --surface: oklch(0.999 0.0015 83);
+  --surface-sunken: oklch(0.967 0.004 83);
+  --muted: oklch(0.96 0.005 83);
 
-  /* Text */
-  --ink: oklch(0.19 0.006 90);
-  --foreground: oklch(0.24 0.006 90);
-  --muted-foreground: oklch(0.47 0.006 90);
-  --subtle-foreground: oklch(0.58 0.006 90);
+  /* Text — warm neutral, restrained contrast */
+  --ink: oklch(0.25 0.008 66);
+  --foreground: oklch(0.35 0.008 68);
+  --muted-foreground: oklch(0.535 0.009 70);
+  --subtle-foreground: oklch(0.65 0.009 72);
 
-  /* Lines */
-  --hairline: oklch(0.93 0.004 90);
-  --border: oklch(0.92 0.004 90);
+  /* Hairlines — quiet, faintly warm */
+  --hairline: oklch(0.915 0.005 80);
+  --border: oklch(0.892 0.006 80);
 
-  /* Actions and accents */
-  --primary: oklch(0.24 0.006 90);
-  --primary-foreground: oklch(0.99 0 0);
-  --brand: oklch(0.55 0.13 255);
-  --brand-ink: oklch(0.47 0.09 255);
-  --brand-quiet: oklch(0.42 0.05 255);
-  --positive: oklch(0.5 0.1 150);
-  --danger: oklch(0.52 0.16 27);
-  --ring: oklch(0.55 0.13 255);
+  /* Accent — one refined blue, matching the button */
+  --primary: oklch(0.585 0.19 266);
+  --primary-foreground: oklch(0.99 0.01 250);
+  --brand: oklch(0.585 0.19 266);
+  --brand-ink: oklch(0.515 0.18 266);
+  --danger: oklch(0.55 0.19 28);
+  --ring: oklch(0.585 0.19 266);
+
+  /* Button face gradients */
+  --gradient-button: linear-gradient(180deg, oklch(0.64 0.17 264), oklch(0.555 0.2 268));
+  --gradient-button-hover: linear-gradient(180deg, oklch(0.66 0.17 264), oklch(0.575 0.2 268));
 }
 
 @layer base {
@@ -91,17 +110,19 @@
   html {
     @apply font-sans;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    font-feature-settings: "cv11", "ss01";
   }
   body {
     @apply bg-background text-foreground;
   }
   ::selection {
-    background: oklch(0.9 0.05 255);
+    background: oklch(0.72 0.14 266 / 0.24);
   }
   /**
    * Chrome paints autofilled fields its own pale blue, which overrides the
-   * recessed fill for every returning user. Repaint with an inset fill; the
+   * warm fill for every returning user. Repaint with an inset fill; the
    * focus-visible border still carries the focus indicator.
    *
    * Kept in its own rule — grouping this with the standard `:autofill`
@@ -111,7 +132,7 @@
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus {
     -webkit-text-fill-color: var(--ink);
-    box-shadow: 0 0 0 1000px var(--background) inset;
+    box-shadow: 0 0 0 1000px var(--surface) inset;
     caret-color: var(--ink);
   }
   @media (prefers-reduced-motion: reduce) {

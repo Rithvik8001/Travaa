@@ -1,15 +1,16 @@
 import { Avatar } from "@/components/ui/avatar";
+import { Card } from "@/components/ui/card";
 
 const IDEA_COMMENTS = [
   {
     initial: "P",
-    color: "oklch(0.8 0.07 150)",
+    color: "oklch(0.88 0.03 205)",
     name: "Priya",
     text: "terrace or nothing, honestly",
   },
   {
     initial: "D",
-    color: "oklch(0.78 0.06 255)",
+    color: "oklch(0.88 0.035 240)",
     name: "Diego",
     text: "already booked it in my head",
   },
@@ -18,9 +19,9 @@ const IDEA_COMMENTS = [
 /** Beat 02 visual: a suggestion carrying its votes and its argument. */
 export function IdeaCard() {
   return (
-    <div className="border-border bg-surface shadow-lift rounded-[18px] border p-5">
+    <Card className="shadow-lift p-5">
       <div className="border-hairline flex items-center gap-[13px] border-b pb-[15px]">
-        <div className="size-12 shrink-0 rounded-xl bg-linear-[135deg,oklch(0.8_0.06_40),oklch(0.68_0.08_28)]" />
+        <div className="size-12 shrink-0 rounded-[12px] bg-linear-[145deg,oklch(0.62_0.15_264),oklch(0.52_0.17_268)]" />
         <div className="flex-1">
           <div className="text-ink text-[15px] font-semibold">
             Alfama villa with terrace
@@ -29,7 +30,7 @@ export function IdeaCard() {
             €1,200 · sleeps 6
           </div>
         </div>
-        <div className="flex items-center gap-1.5 rounded-[11px] border border-[oklch(0.82_0.06_255)] bg-[oklch(0.94_0.02_255)] px-3 py-[7px] text-[13px] font-semibold text-[oklch(0.45_0.1_255)]">
+        <div className="bg-brand/10 text-brand-ink flex items-center gap-1.5 rounded-[8px] px-3 py-[7px] text-[13px] font-semibold tabular-nums">
           <span className="text-[11px]">▲</span> 5
         </div>
       </div>
@@ -49,6 +50,6 @@ export function IdeaCard() {
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   );
 }

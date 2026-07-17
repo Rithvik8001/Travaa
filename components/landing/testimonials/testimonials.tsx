@@ -8,7 +8,7 @@ export function Testimonials() {
       <Container className="grid gap-11 py-[92px] min-[900px]:grid-cols-2 min-[900px]:gap-12">
         {QUOTES.map((quote) => (
           <figure key={quote.name}>
-            <blockquote className="font-serif text-[25px] leading-[1.4] tracking-[-0.01em] text-[oklch(0.26_0.006_90)] text-pretty">
+            <blockquote className="text-ink text-[23px] leading-[1.38] font-medium tracking-[-0.025em] text-pretty">
               “{quote.text}”
             </blockquote>
             <figcaption className="mt-[22px] flex items-center gap-[11px]">

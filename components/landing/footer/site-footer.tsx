@@ -41,7 +41,7 @@ export function SiteFooter() {
         </div>
       </Container>
 
-      <div className="border-t border-[oklch(0.94_0.004_90)]">
+      <div className="border-hairline border-t">
         <Container className="text-subtle-foreground flex flex-wrap justify-between gap-3 py-[22px] text-[13px]">
           <span>© {new Date().getFullYear()} Travaa, Inc.</span>
           <span>

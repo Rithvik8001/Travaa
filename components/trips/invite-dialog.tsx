@@ -75,8 +75,8 @@ export function InviteDialog({
         Invite
       </Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-50 bg-[oklch(0.2_0.02_90/0.32)] backdrop-blur-[3px] transition-opacity data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
-        <Dialog.Popup className="bg-surface shadow-dialog animate-pop fixed top-1/2 left-1/2 z-50 w-[calc(100%-48px)] max-w-[440px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[22px]">
+        <Dialog.Backdrop className="fixed inset-0 z-50 bg-[oklch(0.17_0_0/0.4)] backdrop-blur-[2px] transition-opacity data-[ending-style]:opacity-0 data-[starting-style]:opacity-0" />
+        <Dialog.Popup className="bg-surface border-border shadow-dialog animate-pop fixed top-1/2 left-1/2 z-50 w-[calc(100%-48px)] max-w-[440px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[12px] border">
           <div className="border-hairline border-b px-6 pt-6 pb-[18px]">
             <Dialog.Title className="text-ink text-[18px] font-semibold tracking-[-0.02em]">
               Invite to {tripName}
@@ -88,20 +88,20 @@ export function InviteDialog({
 
           <div className="px-6 py-5">
             <div className="flex gap-2">
-              <div className="border-hairline bg-background text-muted-foreground flex-1 overflow-hidden rounded-[11px] border px-[14px] py-[11px] text-[13.5px] text-ellipsis whitespace-nowrap">
+              <div className="border-border bg-surface-sunken text-muted-foreground flex-1 overflow-hidden rounded-[8px] border px-[13px] py-[10px] font-mono text-[13px] text-ellipsis whitespace-nowrap">
                 {code ? link || `…/j/${code}` : "Generating link…"}
               </div>
               <button
                 type="button"
                 onClick={copy}
                 disabled={!code}
-                className="bg-primary text-primary-foreground hover:bg-ink shrink-0 rounded-[11px] px-4 text-[13.5px] font-medium transition-colors disabled:opacity-55"
+                className="bg-primary text-primary-foreground hover:bg-[oklch(0.48_0.2_277)] shrink-0 rounded-[8px] px-4 text-[13px] font-medium transition-colors disabled:opacity-55"
               >
                 {copied ? "Copied" : "Copy"}
               </button>
             </div>
 
-            <div className="border-hairline bg-background mt-3 flex items-center gap-3 rounded-[11px] border px-[14px] py-3">
+            <div className="border-border bg-surface-sunken mt-3 flex items-center gap-3 rounded-[8px] border px-[14px] py-3">
               <span className="text-subtle-foreground text-[13px]">Or share code</span>
               <span className="text-ink text-[17px] font-semibold tracking-[0.18em] tabular-nums">
                 {code ?? "····"}
@@ -150,7 +150,7 @@ export function InviteDialog({
           </div>
 
           <div className="px-6 pb-[22px]">
-            <Dialog.Close className="border-border text-foreground hover:bg-surface-sunken w-full cursor-pointer rounded-[12px] border bg-transparent py-[11px] text-[14.5px] font-medium transition-colors">
+            <Dialog.Close className="border-border text-foreground hover:bg-surface-sunken w-full cursor-pointer rounded-[8px] border bg-transparent py-[10px] text-[14px] font-medium transition-colors">
               Done
             </Dialog.Close>
           </div>

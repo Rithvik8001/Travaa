@@ -38,19 +38,20 @@ export interface FooterColumn {
   readonly links: readonly string[];
 }
 
+// "available" carries the blue accent; maybe/no stay quiet warm gray.
 export const AVAILABILITY_COLOR: Readonly<Record<Availability, string>> = {
-  yes: "oklch(0.6 0.11 150)",
-  maybe: "oklch(0.75 0.11 75)",
-  no: "oklch(0.75 0.02 30)",
+  yes: "oklch(0.585 0.19 266)",
+  maybe: "oklch(0.74 0.015 80)",
+  no: "oklch(0.83 0.01 80)",
 };
 
 export const CREW: readonly CrewMember[] = [
-  { initial: "M", avatar: "oklch(0.8 0.05 40)", availability: "yes" },
-  { initial: "D", avatar: "oklch(0.78 0.06 255)", availability: "yes" },
-  { initial: "P", avatar: "oklch(0.8 0.07 150)", availability: "yes" },
-  { initial: "S", avatar: "oklch(0.82 0.06 90)", availability: "yes" },
-  { initial: "N", avatar: "oklch(0.78 0.07 350)", availability: "maybe" },
-  { initial: "L", avatar: "oklch(0.8 0.06 200)", availability: "no" },
+  { initial: "M", avatar: "oklch(0.88 0.04 266)", availability: "yes" },
+  { initial: "D", avatar: "oklch(0.88 0.035 240)", availability: "yes" },
+  { initial: "P", avatar: "oklch(0.88 0.03 205)", availability: "yes" },
+  { initial: "S", avatar: "oklch(0.88 0.035 300)", availability: "yes" },
+  { initial: "N", avatar: "oklch(0.88 0.03 160)", availability: "maybe" },
+  { initial: "L", avatar: "oklch(0.88 0.035 255)", availability: "no" },
 ];
 
 export const STEPS: readonly Step[] = [
@@ -73,32 +74,32 @@ export const STEPS: readonly Step[] = [
 
 export const DETAILS: readonly Detail[] = [
   {
-    mark: "oklch(0.7 0.1 40)",
+    mark: "oklch(0.585 0.16 266)",
     title: "Packing lists",
     desc: "Shared and private, with items assigned to whoever's carrying them.",
   },
   {
-    mark: "oklch(0.65 0.1 255)",
+    mark: "oklch(0.6 0.13 240)",
     title: "Roles & permissions",
     desc: "Organizers, co-organizers, members — everyone sees the right thing.",
   },
   {
-    mark: "oklch(0.65 0.1 150)",
+    mark: "oklch(0.62 0.11 205)",
     title: "Receipts & files",
     desc: "Attach confirmations and receipts right where they belong.",
   },
   {
-    mark: "oklch(0.7 0.1 75)",
+    mark: "oklch(0.6 0.14 300)",
     title: "Notifications",
     desc: "Nudges for votes and new expenses. Never a feed to scroll.",
   },
   {
-    mark: "oklch(0.65 0.1 320)",
+    mark: "oklch(0.62 0.11 160)",
     title: "Real-time sync",
     desc: "Changes appear instantly for the whole group, optimistically.",
   },
   {
-    mark: "oklch(0.65 0.1 200)",
+    mark: "oklch(0.585 0.15 255)",
     title: "Deep-link invites",
     desc: "Tap a link, land straight inside the trip. No hunting for codes.",
   },
@@ -110,14 +111,14 @@ export const QUOTES: readonly Quote[] = [
     name: "Maya Chen",
     sub: "Planned 3 trips on Travaa",
     initial: "M",
-    avatar: "oklch(0.8 0.05 40)",
+    avatar: "oklch(0.88 0.04 266)",
   },
   {
     text: "The dates poll alone ended a fight our group chat had been having since February.",
     name: "Lena Brandt",
     sub: "Planned 4 trips on Travaa",
     initial: "L",
-    avatar: "oklch(0.8 0.06 200)",
+    avatar: "oklch(0.88 0.035 255)",
   },
 ];
 

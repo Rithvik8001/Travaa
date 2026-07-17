@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
+import { Card } from "@/components/ui/card";
 import { DeleteTripButton } from "@/components/trips/delete-trip-button";
 import { InviteDialog } from "@/components/trips/invite-dialog";
 import { LeaveTripButton } from "@/components/trips/leave-trip-button";
@@ -101,20 +102,20 @@ export default async function TripPage({
       <div className="mx-auto flex max-w-[760px] flex-wrap items-start justify-between gap-4 px-6 pt-[30px]">
         <div>
           <div className="mb-2 flex items-center gap-2.5">
-            {isArchived ? (
-              <span className="text-muted-foreground bg-muted rounded-[7px] px-[9px] py-1 text-[11px] font-semibold tracking-[0.04em] uppercase">
-                Archived
-              </span>
-            ) : (
-              <span className="text-brand-ink bg-brand/12 rounded-[7px] px-[9px] py-1 text-[11px] font-semibold tracking-[0.04em] uppercase">
-                Planning
-              </span>
-            )}
+            <span
+              className={
+                isArchived
+                  ? "text-muted-foreground bg-muted rounded-full px-2.5 py-[3.5px] text-[10.5px] font-semibold tracking-[0.02em] uppercase"
+                  : "text-brand-ink bg-brand/10 rounded-full px-2.5 py-[3.5px] text-[10.5px] font-semibold tracking-[0.02em] uppercase"
+              }
+            >
+              {isArchived ? "Archived" : "Planning"}
+            </span>
             {!isArchived && relative ? (
               <span className="text-subtle-foreground text-[13px]">{relative}</span>
             ) : null}
           </div>
-          <h1 className="text-ink text-[30px] font-semibold tracking-[-0.025em]">
+          <h1 className="text-ink text-[30px] font-semibold tracking-[-0.03em]">
             {trip.name}
           </h1>
           {subtitle ? (
@@ -127,13 +128,13 @@ export default async function TripPage({
       </div>
 
       <div className="mx-auto max-w-[760px] px-6 pt-[26px] pb-[90px]">
-        <div className="bg-surface border-hairline shadow-card rounded-[16px] border">
+        <Card>
           <p className="text-subtle-foreground mx-auto max-w-[46ch] px-5 py-11 text-center text-[14.5px] leading-[1.55]">
             {isArchived
               ? "This trip is archived. Unarchive it to pick planning back up, or delete it for good."
               : "Dates, ideas, the itinerary, and who-paid-for-what land here soon. For now, your trip has a home — invite your crew once members arrive."}
           </p>
-        </div>
+        </Card>
 
         {isOwner && isArchived ? (
           <div className="mt-6 flex justify-center">

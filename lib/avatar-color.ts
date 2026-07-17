@@ -1,15 +1,16 @@
 /**
- * The crew palette from the design — warm, desaturated, all legible under the
- * same ink. Members should keep a stable colour across sessions and surfaces,
- * so pick by hashing a stable id rather than at random.
+ * A cohesive cool tint set (indigo → teal → violet) that harmonizes with the
+ * indigo accent — defined enough to tell a crew stack apart, quiet enough not to
+ * shout. All legible under the same ink. Members keep a stable colour across
+ * sessions and surfaces, so pick by hashing a stable id rather than at random.
  */
 const AVATAR_COLORS = [
-  "oklch(0.8 0.05 40)",
-  "oklch(0.78 0.06 255)",
-  "oklch(0.8 0.07 150)",
-  "oklch(0.82 0.06 90)",
-  "oklch(0.78 0.07 350)",
-  "oklch(0.8 0.06 200)",
+  "oklch(0.88 0.035 277)",
+  "oklch(0.88 0.035 230)",
+  "oklch(0.88 0.035 195)",
+  "oklch(0.88 0.035 320)",
+  "oklch(0.88 0.035 155)",
+  "oklch(0.88 0.03 255)",
 ] as const;
 
 export function avatarColor(seed: string): string {

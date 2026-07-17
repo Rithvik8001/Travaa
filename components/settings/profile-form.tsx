@@ -94,8 +94,8 @@ export function ProfileForm({ defaultValues }: ProfileFormProps) {
           {pending ? "Saving…" : "Save profile"}
         </Button>
         {saved ? (
-          <span role="status" className="text-positive text-[13.5px] font-medium">
-            Saved
+          <span role="status" className="text-muted-foreground text-[13.5px] font-medium">
+            Saved ✓
           </span>
         ) : null}
       </div>

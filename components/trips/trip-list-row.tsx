@@ -16,20 +16,20 @@ export function TripListRow({ trip }: { readonly trip: Trip }) {
     >
       <span
         aria-hidden
-        className="size-[54px] shrink-0 rounded-[13px]"
+        className="size-[52px] shrink-0 rounded-[10px]"
         style={{ background: tripCover(trip.id) }}
       />
       <span className="min-w-0 flex-1">
-        <span className="text-foreground block truncate text-[16px] font-semibold tracking-[-0.01em]">
+        <span className="text-ink block truncate text-[15.5px] font-semibold tracking-[-0.015em]">
           {trip.name}
         </span>
         {meta ? (
-          <span className="text-subtle-foreground mt-px block truncate text-[13.5px]">
+          <span className="text-subtle-foreground mt-px block truncate text-[13px]">
             {meta}
           </span>
         ) : null}
       </span>
-      <span className="text-brand-ink bg-brand/12 shrink-0 rounded-[7px] px-[9px] py-1 text-[11px] font-semibold tracking-[0.03em] whitespace-nowrap uppercase">
+      <span className="text-brand-ink bg-brand/10 shrink-0 rounded-full px-2.5 py-[3.5px] text-[10.5px] font-semibold tracking-[0.02em] whitespace-nowrap uppercase">
         Planning
       </span>
     </Link>

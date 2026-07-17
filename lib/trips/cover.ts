@@ -1,15 +1,16 @@
 /**
- * Trip cover gradients from the design's cover/idea swatches. Deterministic per
- * trip id (same hash-an-id approach as lib/avatar-color.ts) so a trip keeps its
- * look across sessions — a stand-in until real cover images (Cloudinary) land.
+ * Trip cover gradients — deep, saturated cool blends (indigo → teal → violet)
+ * in the accent family, deterministic per trip id (same hash-an-id approach as
+ * lib/avatar-color.ts) so a trip keeps its look across sessions. White text and
+ * avatars read cleanly on top. A stand-in until real cover images (Cloudinary) land.
  */
 const TRIP_COVERS = [
-  "linear-gradient(135deg, oklch(0.8 0.06 40), oklch(0.68 0.09 28))",
-  "linear-gradient(135deg, oklch(0.76 0.06 235), oklch(0.62 0.08 255))",
-  "linear-gradient(135deg, oklch(0.82 0.06 350), oklch(0.74 0.08 20))",
-  "linear-gradient(135deg, oklch(0.79 0.07 130), oklch(0.68 0.08 155))",
-  "linear-gradient(135deg, oklch(0.78 0.07 200), oklch(0.68 0.08 210))",
-  "linear-gradient(135deg, oklch(0.79 0.07 320), oklch(0.7 0.08 340))",
+  "linear-gradient(145deg, oklch(0.6 0.17 277), oklch(0.48 0.17 285))",
+  "linear-gradient(145deg, oklch(0.62 0.13 230), oklch(0.5 0.15 260))",
+  "linear-gradient(145deg, oklch(0.64 0.12 195), oklch(0.52 0.14 220))",
+  "linear-gradient(145deg, oklch(0.62 0.15 320), oklch(0.5 0.16 290))",
+  "linear-gradient(145deg, oklch(0.64 0.13 160), oklch(0.52 0.13 195))",
+  "linear-gradient(145deg, oklch(0.58 0.16 260), oklch(0.46 0.16 280))",
 ] as const;
 
 export function tripCover(seed: string): string {
