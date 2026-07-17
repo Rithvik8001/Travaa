@@ -2,14 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
-import { Card } from "@/components/ui/card";
+import { DatePoll } from "@/components/trips/date-poll";
 import { DeleteTripButton } from "@/components/trips/delete-trip-button";
 import { InviteDialog } from "@/components/trips/invite-dialog";
 import { LeaveTripButton } from "@/components/trips/leave-trip-button";
 import { MemberStack } from "@/components/trips/member-stack";
 import { avatarColor } from "@/lib/avatar-color";
 import { deleteTrip, leaveTrip, unarchiveTrip } from "@/lib/trips/actions";
-import { getTripForUser, listTripMembers } from "@/lib/trips/queries";
+import { getDatePoll, getTripForUser, listTripMembers } from "@/lib/trips/queries";
 import { formatWindow, relativeToNow } from "@/lib/trips/format";
 import { requireSession } from "@/lib/session";
 
@@ -35,9 +35,16 @@ export default async function TripPage({
   const trip = await getTripForUser(tripId, user.id);
   if (!trip) notFound();
 
-  const members = await listTripMembers(tripId);
+  const [members, datePoll] = await Promise.all([
+    listTripMembers(tripId),
+    getDatePoll(tripId, user.id),
+  ]);
   const isArchived = Boolean(trip.archivedAt);
   const isOwner = trip.ownerId === user.id;
+  const lockedWindow =
+    trip.datesLockedAt && trip.startDate && trip.endDate
+      ? { startDate: trip.startDate, endDate: trip.endDate }
+      : null;
   const window = formatWindow(trip.startDate, trip.endDate);
   const relative = relativeToNow(trip.startDate);
   const subtitle = [window, trip.destination].filter(Boolean).join(" · ");
@@ -128,13 +135,15 @@ export default async function TripPage({
       </div>
 
       <div className="mx-auto max-w-[760px] px-6 pt-[26px] pb-[90px]">
-        <Card>
-          <p className="text-subtle-foreground mx-auto max-w-[46ch] px-5 py-11 text-center text-[14.5px] leading-[1.55]">
-            {isArchived
-              ? "This trip is archived. Unarchive it to pick planning back up, or delete it for good."
-              : "Dates, ideas, the itinerary, and who-paid-for-what land here soon. For now, your trip has a home — invite your crew once members arrive."}
-          </p>
-        </Card>
+        <DatePoll
+          tripId={trip.id}
+          options={datePoll}
+          members={members}
+          currentUserId={user.id}
+          isOrganizer={isOwner}
+          readOnly={isArchived}
+          lockedWindow={lockedWindow}
+        />
 
         {isOwner && isArchived ? (
           <div className="mt-6 flex justify-center">

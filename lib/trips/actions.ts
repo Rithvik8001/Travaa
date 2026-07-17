@@ -5,7 +5,14 @@ import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { trips, tripMembers } from "@/lib/db/trips";
+import {
+  trips,
+  tripMembers,
+  tripDateOptions,
+  tripDateVotes,
+} from "@/lib/db/trips";
+import { assertMember } from "@/lib/trips/queries";
+import { nights, type Availability } from "@/lib/trips/dates";
 import { requireSession } from "@/lib/session";
 
 /** Raw form values; dates arrive as "" or "YYYY-MM-DD". */
@@ -250,4 +257,150 @@ export async function rotateInviteCode(
 
   revalidatePath(`/trips/${tripId}`);
   return { code };
+}
+
+/* ── Date polling ─────────────────────────────────────────────────────────── */
+
+/** An active trip the user belongs to, or a message to surface. Gate for poll edits. */
+async function activeMemberTrip(
+  tripId: string,
+  userId: string,
+): Promise<{ ownerId: string } | { error: string }> {
+  if (!(await assertMember(tripId, userId)))
+    return { error: "You're not a member of this trip." };
+
+  const trip = await db.query.trips.findFirst({
+    where: eq(trips.id, tripId),
+    columns: { ownerId: true, archivedAt: true },
+  });
+  if (!trip) return { error: "Trip not found." };
+  if (trip.archivedAt) return { error: "This trip is archived." };
+
+  return { ownerId: trip.ownerId };
+}
+
+/** Propose a candidate window. Any member; duplicate windows are silently ignored. */
+export async function proposeDateOption(
+  tripId: string,
+  input: { startDate: string; endDate: string },
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+
+  const trip = await activeMemberTrip(tripId, user.id);
+  if ("error" in trip) return trip;
+
+  const startDate = input.startDate || "";
+  const endDate = input.endDate || "";
+  if (!startDate || !endDate) return { error: "Pick a start and end date." };
+  if (endDate < startDate)
+    return { error: "The end date can't be before the start date." };
+  if (nights(startDate, endDate) > 60)
+    return { error: "Keep the window under two months." };
+
+  await db
+    .insert(tripDateOptions)
+    .values({ id: randomUUID(), tripId, startDate, endDate, createdBy: user.id })
+    .onConflictDoNothing();
+
+  revalidatePath(`/trips/${tripId}`);
+}
+
+/** Remove a proposed window. The proposer or the organizer only. */
+export async function removeDateOption(
+  optionId: string,
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+
+  const option = await db.query.tripDateOptions.findFirst({
+    where: eq(tripDateOptions.id, optionId),
+    columns: { tripId: true, createdBy: true },
+  });
+  if (!option) return;
+
+  const trip = await activeMemberTrip(option.tripId, user.id);
+  if ("error" in trip) return trip;
+
+  const canRemove = option.createdBy === user.id || trip.ownerId === user.id;
+  if (!canRemove) return { error: "You can't remove this window." };
+
+  await db.delete(tripDateOptions).where(eq(tripDateOptions.id, optionId));
+
+  revalidatePath(`/trips/${option.tripId}`);
+}
+
+/** Set the caller's yes/maybe/no on a window. Any member; upserts their vote. */
+export async function setAvailability(
+  optionId: string,
+  value: Availability,
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+
+  if (value !== "yes" && value !== "maybe" && value !== "no")
+    return { error: "Unknown response." };
+
+  const option = await db.query.tripDateOptions.findFirst({
+    where: eq(tripDateOptions.id, optionId),
+    columns: { tripId: true },
+  });
+  if (!option) return { error: "That window no longer exists." };
+
+  const trip = await activeMemberTrip(option.tripId, user.id);
+  if ("error" in trip) return trip;
+
+  await db
+    .insert(tripDateVotes)
+    .values({ id: randomUUID(), optionId, userId: user.id, value })
+    .onConflictDoUpdate({
+      target: [tripDateVotes.optionId, tripDateVotes.userId],
+      set: { value },
+    });
+
+  revalidatePath(`/trips/${option.tripId}`);
+}
+
+/** Commit a window as the trip's dates. Organizer-only, active trips only. */
+export async function lockDates(
+  tripId: string,
+  optionId: string,
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+
+  const existing = await ownedTrip(tripId, user.id);
+  if (!existing) return { error: "Only the organizer can lock the dates." };
+  if (existing.archivedAt) return { error: "This trip is archived." };
+
+  const option = await db.query.tripDateOptions.findFirst({
+    where: and(
+      eq(tripDateOptions.id, optionId),
+      eq(tripDateOptions.tripId, tripId),
+    ),
+    columns: { startDate: true, endDate: true },
+  });
+  if (!option) return { error: "That window no longer exists." };
+
+  await db
+    .update(trips)
+    .set({
+      startDate: option.startDate,
+      endDate: option.endDate,
+      datesLockedAt: new Date(),
+    })
+    .where(eq(trips.id, tripId));
+
+  revalidatePath("/dashboard");
+  revalidatePath(`/trips/${tripId}`);
+}
+
+/** Reopen the poll. Keeps the locked-in dates; organizer can lock again. */
+export async function unlockDates(
+  tripId: string,
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+
+  const existing = await ownedTrip(tripId, user.id);
+  if (!existing) return { error: "Only the organizer can reopen the poll." };
+
+  await db.update(trips).set({ datesLockedAt: null }).where(eq(trips.id, tripId));
+
+  revalidatePath(`/trips/${tripId}`);
 }

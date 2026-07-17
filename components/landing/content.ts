@@ -3,7 +3,11 @@
  * Nothing here touches the database — the landing page is a pure Server Component.
  */
 
-export type Availability = "yes" | "maybe" | "no";
+import { AVAILABILITY_COLOR, type Availability } from "@/lib/trips/dates";
+
+// Re-exported so landing sections keep importing availability from one place.
+export { AVAILABILITY_COLOR };
+export type { Availability };
 
 export interface CrewMember {
   readonly initial: string;
@@ -37,13 +41,6 @@ export interface FooterColumn {
   readonly head: string;
   readonly links: readonly string[];
 }
-
-// "available" carries the blue accent; maybe/no stay quiet warm gray.
-export const AVAILABILITY_COLOR: Readonly<Record<Availability, string>> = {
-  yes: "oklch(0.585 0.19 266)",
-  maybe: "oklch(0.74 0.015 80)",
-  no: "oklch(0.83 0.01 80)",
-};
 
 export const CREW: readonly CrewMember[] = [
   { initial: "M", avatar: "oklch(0.88 0.04 266)", availability: "yes" },
