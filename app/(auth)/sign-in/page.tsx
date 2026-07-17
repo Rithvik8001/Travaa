@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SignInForm } from "@/components/auth/sign-in-form";
-import { DecisionCard } from "@/components/ui/decision-card";
 import { redirectIfSignedIn } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Sign in" };
@@ -16,22 +15,25 @@ export default async function SignInPage({
   const suffix = redirect ? `?redirect=${encodeURIComponent(redirect)}` : "";
 
   return (
-    <DecisionCard
-      title="Welcome back"
-      subtitle="Pick up where your crew left off."
-      footer={
-        <>
-          New here?{" "}
-          <Link
-            href={`/sign-up${suffix}`}
-            className="text-brand-ink font-medium hover:underline"
-          >
-            Start a trip
-          </Link>
-        </>
-      }
-    >
+    <>
+      <h1 className="text-ink text-[30px] leading-[1.08] font-semibold tracking-[-0.035em]">
+        Welcome back
+      </h1>
+      <p className="text-muted-foreground mt-2.5 mb-8 text-[15px] leading-[1.55]">
+        Pick up where your crew left off.
+      </p>
+
       <SignInForm redirect={redirect} />
-    </DecisionCard>
+
+      <p className="text-muted-foreground mt-7 text-[14px]">
+        New here?{" "}
+        <Link
+          href={`/sign-up${suffix}`}
+          className="text-brand-ink font-medium hover:underline"
+        >
+          Start a trip
+        </Link>
+      </p>
+    </>
   );
 }

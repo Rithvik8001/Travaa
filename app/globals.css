@@ -1,10 +1,12 @@
 @import "tailwindcss";
 
 /**
- * Travaa design tokens — "warm premium minimal", set in Inter.
- * A warm ivory canvas, warm-neutral ink, one considered blue accent, soft warm
- * depth. Minimalism with soul: whitespace, restraint, and craft in the details.
- * Every token below is in use — add one only when a component needs it.
+ * Travaa design tokens — "quiet studio": ultra-minimal, near-monochrome.
+ * A cool-neutral paper canvas, near-black ink, and a single considered blue
+ * accent (the one that carries the tactile primary button). Depth comes from a
+ * layered shadow-as-border, never heavy drop shadows; structure comes from
+ * hairlines and whitespace. Every token below is in use — add one only when a
+ * component needs it.
  */
 @theme inline {
   --color-background: var(--background);
@@ -27,20 +29,31 @@
   --font-sans: var(--sans-stack);
   --font-mono: var(--mono-stack);
 
-  /* Restrained, warm-tinted depth — barely there; hairlines do most of the work. */
+  /* Shadow-as-border: a 1px ring + two ambient lift layers, pure-black alpha so
+     it reads clean on any surface. The default card treatment. */
+  --shadow-border:
+    0 0 0 1px oklch(0 0 0 / 0.05), 0 1px 2px -1px oklch(0 0 0 / 0.06),
+    0 2px 6px -2px oklch(0 0 0 / 0.04);
+  --shadow-border-hover:
+    0 0 0 1px oklch(0 0 0 / 0.08), 0 2px 4px -2px oklch(0 0 0 / 0.08),
+    0 6px 16px -6px oklch(0 0 0 / 0.08);
+  /* Soft ambient card (list surfaces that shouldn't carry the ring). */
   --shadow-card:
-    0 1px 2px oklch(0.3 0.02 70 / 0.03), 0 4px 12px -6px oklch(0.3 0.02 70 / 0.06),
-    0 16px 32px -24px oklch(0.3 0.02 70 / 0.08);
+    0 0 0 1px oklch(0 0 0 / 0.04), 0 1px 2px -1px oklch(0 0 0 / 0.05),
+    0 4px 12px -8px oklch(0 0 0 / 0.06);
+  /* Elevated surfaces — dialogs, popovers, the centered decision card. */
   --shadow-dialog:
-    0 1px 2px oklch(0.3 0.02 70 / 0.04), 0 18px 44px -20px oklch(0.3 0.02 70 / 0.15);
+    0 0 0 1px oklch(0 0 0 / 0.05), 0 12px 28px -12px oklch(0 0 0 / 0.18),
+    0 28px 60px -32px oklch(0 0 0 / 0.22);
   --shadow-float:
-    0 1px 2px oklch(0.3 0.02 70 / 0.03), 0 8px 22px -12px oklch(0.3 0.02 70 / 0.1);
+    0 0 0 1px oklch(0 0 0 / 0.04), 0 10px 26px -14px oklch(0 0 0 / 0.14);
   --shadow-lift:
-    0 1px 2px oklch(0.3 0.02 70 / 0.03), 0 18px 40px -26px oklch(0.3 0.02 70 / 0.12);
+    0 0 0 1px oklch(0 0 0 / 0.05), 0 20px 44px -28px oklch(0 0 0 / 0.16);
   --shadow-panel:
-    0 1px 2px oklch(0.3 0.02 70 / 0.04), 0 30px 64px -40px oklch(0.3 0.02 70 / 0.15);
+    0 0 0 1px oklch(0 0 0 / 0.05), 0 32px 68px -44px oklch(0 0 0 / 0.2);
 
-  /* Layered tactile button — gloss line, inner ring, crisp edge, soft halo, drop. */
+  /* Layered tactile button — gloss line, inner ring, crisp edge, soft halo, drop.
+     Unchanged: the primary button is the one rich moment in the whole system. */
   --shadow-button:
     inset 0 1px 0 0 oklch(0.86 0.08 264 / 0.6), inset 0 0 0 1px oklch(0.74 0.13 265 / 0.4),
     0 0 0 1px oklch(0.49 0.2 268), 0 0 0 4px oklch(0.6 0.19 266 / 0.13),
@@ -54,17 +67,33 @@
     0 0 0 1px oklch(0.49 0.2 268), 0 0 0 4px oklch(0.6 0.19 266 / 0.12),
     0 2px 6px -2px oklch(0.5 0.2 267 / 0.35);
 
-  --animate-pop: pop 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-pop: pop 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-rise: rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes pop {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.99);
+    transform: translateY(6px) scale(0.99);
   }
   to {
     opacity: 1;
     transform: none;
+  }
+}
+
+/* One-shot enter for hero/heading chunks — fade + rise + de-blur. Stagger with
+   per-element animation-delay (see [data-rise] utilities below). */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
   }
 }
 
@@ -74,23 +103,23 @@
     Arial, sans-serif;
   --mono-stack: ui-monospace, "SF Mono", Menlo, Monaco, "Cascadia Mono", monospace;
 
-  /* Surfaces — a calm off-white with just a whisper of warmth */
-  --background: oklch(0.986 0.004 83);
-  --surface: oklch(0.999 0.0015 83);
-  --surface-sunken: oklch(0.967 0.004 83);
-  --muted: oklch(0.96 0.005 83);
+  /* Surfaces — a cool-neutral paper; pure-white cards lift a half-step above it. */
+  --background: oklch(0.984 0.002 265);
+  --surface: oklch(1 0 0);
+  --surface-sunken: oklch(0.968 0.003 265);
+  --muted: oklch(0.957 0.004 265);
 
-  /* Text — warm neutral, restrained contrast */
-  --ink: oklch(0.25 0.008 66);
-  --foreground: oklch(0.35 0.008 68);
-  --muted-foreground: oklch(0.535 0.009 70);
-  --subtle-foreground: oklch(0.65 0.009 72);
+  /* Text — a single cool-neutral ramp, near-black at the top for real contrast. */
+  --ink: oklch(0.21 0.006 265);
+  --foreground: oklch(0.32 0.006 265);
+  --muted-foreground: oklch(0.52 0.008 265);
+  --subtle-foreground: oklch(0.63 0.009 265);
 
-  /* Hairlines — quiet, faintly warm */
-  --hairline: oklch(0.915 0.005 80);
-  --border: oklch(0.892 0.006 80);
+  /* Hairlines — the primary structural device. */
+  --hairline: oklch(0.923 0.004 265);
+  --border: oklch(0.9 0.005 265);
 
-  /* Accent — one refined blue, matching the button */
+  /* Accent — one refined blue, matching the button. The system's only hue. */
   --primary: oklch(0.585 0.19 266);
   --primary-foreground: oklch(0.99 0.01 250);
   --brand: oklch(0.585 0.19 266);
@@ -98,7 +127,7 @@
   --danger: oklch(0.55 0.19 28);
   --ring: oklch(0.585 0.19 266);
 
-  /* Button face gradients */
+  /* Button face gradients — unchanged. */
   --gradient-button: linear-gradient(180deg, oklch(0.64 0.17 264), oklch(0.555 0.2 268));
   --gradient-button-hover: linear-gradient(180deg, oklch(0.66 0.17 264), oklch(0.575 0.2 268));
 }
@@ -117,16 +146,24 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Typographic defaults: balance headings, keep body from orphaning. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
   ::selection {
-    background: oklch(0.72 0.14 266 / 0.24);
+    background: oklch(0.72 0.14 266 / 0.22);
   }
   /**
-   * Chrome paints autofilled fields its own pale blue, which overrides the
-   * warm fill for every returning user. Repaint with an inset fill; the
-   * focus-visible border still carries the focus indicator.
-   *
-   * Kept in its own rule — grouping this with the standard `:autofill`
-   * selector drops the whole list, since one unknown selector invalidates it.
+   * Chrome paints autofilled fields its own pale blue, overriding our fill for
+   * returning users. Repaint with an inset fill; the focus-visible border still
+   * carries the focus indicator. Kept in its own rule — grouping with the
+   * standard `:autofill` selector drops the whole list.
    */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
@@ -144,5 +181,32 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+  }
+}
+
+@layer utilities {
+  /* Staggered enter: mark a container [data-rise-group] and children [data-rise];
+     each child rises with an increasing delay. Purely decorative — content is
+     visible without JS and collapses under reduced-motion. */
+  [data-rise] {
+    animation: var(--animate-rise);
+  }
+  [data-rise-group] > [data-rise]:nth-child(1) {
+    animation-delay: 0ms;
+  }
+  [data-rise-group] > [data-rise]:nth-child(2) {
+    animation-delay: 80ms;
+  }
+  [data-rise-group] > [data-rise]:nth-child(3) {
+    animation-delay: 160ms;
+  }
+  [data-rise-group] > [data-rise]:nth-child(4) {
+    animation-delay: 240ms;
+  }
+  [data-rise-group] > [data-rise]:nth-child(5) {
+    animation-delay: 320ms;
+  }
+  [data-rise-group] > [data-rise]:nth-child(6) {
+    animation-delay: 400ms;
   }
 }

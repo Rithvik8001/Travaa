@@ -2,8 +2,8 @@ import { Card } from "./card";
 
 /**
  * The app's centered "one-decision" card (auth, create/edit trip, join): the
- * shared Card surface with a title, subtitle, body, and an optional quiet line
- * beneath it. Area-agnostic.
+ * shared Card surface, elevated, with a tight display title, a quiet subhead,
+ * the body, and an optional line beneath the surface. Area-agnostic.
  */
 interface DecisionCardProps {
   readonly title: string;
@@ -21,11 +21,11 @@ export function DecisionCard({
 }: DecisionCardProps) {
   return (
     <>
-      <Card className="shadow-dialog px-7 pt-7 pb-7">
-        <h1 className="text-ink text-[23px] font-semibold tracking-[-0.03em]">
+      <Card className="shadow-dialog rounded-[24px] px-8 pt-8 pb-8">
+        <h1 className="text-ink text-[26px] leading-[1.1] font-semibold tracking-[-0.035em]">
           {title}
         </h1>
-        <p className="text-muted-foreground mt-1.5 mb-6 text-[14.5px] leading-[1.5]">
+        <p className="text-muted-foreground mt-2 mb-7 max-w-[42ch] text-[14.5px] leading-[1.55]">
           {subtitle}
         </p>
         {children}

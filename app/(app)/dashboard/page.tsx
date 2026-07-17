@@ -1,12 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SignOutButton } from "@/components/dashboard/sign-out-button";
 import { ArchivedTripRow } from "@/components/trips/archived-trip-row";
 import { TripListRow } from "@/components/trips/trip-list-row";
-import { Avatar } from "@/components/ui/avatar";
-import { Card } from "@/components/ui/card";
-import { Wordmark } from "@/components/ui/wordmark";
-import { avatarColor } from "@/lib/avatar-color";
+import { CtaLink } from "@/components/ui/cta-link";
 import { listArchivedTripsForUser, listTripsForUser } from "@/lib/trips/queries";
 import { requireSession } from "@/lib/session";
 
@@ -20,60 +16,66 @@ export default async function DashboardPage() {
   ]);
 
   return (
-    <main className="mx-auto w-full max-w-[680px] px-6 pt-10 pb-20">
-      <header className="mb-11 flex items-center justify-between">
-        <Wordmark markClassName="size-6" />
-        <div className="flex items-center gap-[18px]">
-          <SignOutButton />
-          <Link
-            href="/settings"
-            aria-label="Your profile"
-            className="rounded-full transition-opacity hover:opacity-90"
-          >
-            <Avatar
-              initial={user.name.slice(0, 1).toUpperCase()}
-              color={avatarColor(user.id)}
-              className="size-8 text-[13px]"
-            />
-          </Link>
+    <main className="mx-auto w-full max-w-[1080px] px-6 pt-16 pb-32">
+      <div
+        data-rise-group
+        className="mb-9 flex flex-wrap items-end justify-between gap-4"
+      >
+        <div data-rise>
+          <h1 className="text-ink text-[34px] leading-[1.05] font-semibold tracking-[-0.035em]">
+            Your trips
+          </h1>
+          <p className="text-muted-foreground mt-2 text-[15px]">
+            {trips.length === 0
+              ? "Nothing planned yet — let's fix that."
+              : `${trips.length} in the works${
+                  archived.length > 0 ? ` · ${archived.length} archived` : ""
+                }`}
+          </p>
         </div>
-      </header>
+        <div data-rise>
+          <CtaLink href="/trips/new" size="sm">
+            New trip
+          </CtaLink>
+        </div>
+      </div>
 
-      <h1 className="text-ink text-[32px] font-semibold tracking-[-0.03em]">
-        Your trips
-      </h1>
-      <p className="text-subtle-foreground mt-1 mb-[30px] text-[15px]">
-        {trips.length === 0
-          ? "Nothing planned yet."
-          : `${trips.length} trip${trips.length === 1 ? "" : "s"}`}
-      </p>
-
-      <Card className="overflow-hidden">
-        {trips.length === 0 ? (
-          <p className="text-subtle-foreground mx-auto max-w-[42ch] px-5 py-11 text-center text-[14.5px] leading-[1.55]">
+      {trips.length === 0 ? (
+        <div className="bg-surface shadow-card rounded-[20px] px-6 py-16 text-center">
+          <p className="text-muted-foreground mx-auto max-w-[46ch] text-[15px] leading-[1.6]">
             Your trips will live here. Start one, share the link, and your crew
             can vote on dates before they even make an account.
           </p>
-        ) : (
-          trips.map((trip) => <TripListRow key={trip.id} trip={trip} />)
-        )}
-        <Link
-          href="/trips/new"
-          className="border-hairline hover:bg-surface-sunken text-brand-ink flex w-full items-center gap-2.5 border-t px-5 py-[15px] text-left text-[14.5px] font-medium transition-colors"
-        >
-          <span aria-hidden className="text-[19px] leading-none">
-            +
-          </span>
-          Start a new trip
-        </Link>
-      </Card>
+          <div className="mt-6 flex justify-center">
+            <CtaLink href="/trips/new">Start your first trip</CtaLink>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 min-[560px]:grid-cols-2 min-[900px]:grid-cols-3">
+          {trips.map((trip) => (
+            <TripListRow key={trip.id} trip={trip} />
+          ))}
+          <Link
+            href="/trips/new"
+            className="text-subtle-foreground hover:text-brand-ink hover:border-brand/40 flex min-h-[168px] flex-col items-center justify-center gap-2 rounded-[16px] border border-dashed border-[var(--border)] transition-colors"
+          >
+            <span
+              aria-hidden
+              className="flex size-9 items-center justify-center rounded-full border border-[var(--border)] text-[19px] leading-none"
+            >
+              +
+            </span>
+            <span className="text-[13.5px] font-medium">New trip</span>
+          </Link>
+        </div>
+      )}
 
       {archived.length > 0 ? (
-        <section className="mt-[34px]">
-          <h2 className="text-subtle-foreground mb-3 text-[12.5px] font-semibold tracking-[0.06em] uppercase">
+        <section className="mt-14">
+          <h2 className="text-subtle-foreground mb-3 text-[12px] font-semibold tracking-[0.08em] uppercase">
             Archived
           </h2>
-          <div className="flex flex-col gap-2.5">
+          <div className="grid grid-cols-1 gap-1 min-[560px]:grid-cols-2">
             {archived.map((trip) => (
               <ArchivedTripRow key={trip.id} trip={trip} />
             ))}

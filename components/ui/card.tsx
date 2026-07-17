@@ -1,9 +1,10 @@
 import { cn } from "@/lib/utils";
 
 /**
- * The one card surface, used everywhere a card is: a warm-white panel with a
- * generous radius, a warm hairline, and a soft ambient shadow. Padding and any
- * extra depth (e.g. `shadow-dialog` for a centered card) are set by the caller.
+ * The one card surface. A pure-white panel lifted a half-step off the paper
+ * canvas by a layered shadow-as-border (1px ring + soft ambient), never a hard
+ * border. Radius, padding, and any extra depth (`shadow-dialog` for a centered
+ * card) are set by the caller.
  */
 export function Card({
   className,
@@ -11,10 +12,7 @@ export function Card({
 }: Readonly<React.ComponentPropsWithoutRef<"div">>) {
   return (
     <div
-      className={cn(
-        "bg-surface border-hairline shadow-card rounded-[20px] border",
-        className,
-      )}
+      className={cn("bg-surface shadow-card rounded-[18px]", className)}
       {...props}
     />
   );

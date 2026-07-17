@@ -25,7 +25,7 @@ export function Avatar({
     <span
       aria-hidden
       className={cn(
-        "relative flex shrink-0 items-center justify-center rounded-full font-semibold",
+        "relative flex shrink-0 items-center justify-center rounded-full font-semibold shadow-[inset_0_0_0_1px_oklch(0_0_0/0.06)]",
         dimmed && "opacity-40",
         className,
       )}

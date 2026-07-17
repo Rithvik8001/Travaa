@@ -22,6 +22,35 @@ export interface Step {
   readonly desc: string;
 }
 
+export interface Feature {
+  readonly n: string;
+  readonly title: string;
+  readonly desc: string;
+}
+
+export const FEATURES: readonly Feature[] = [
+  {
+    n: "01",
+    title: "Find the weekend that works",
+    desc: "Everyone taps their availability once. Travaa points straight at the dates the most people can make — then locks them the moment you're ready.",
+  },
+  {
+    n: "02",
+    title: "Decide together, out loud",
+    desc: "Drop in stays, restaurants, and plans. The group votes and talks it through right there. Winners become itinerary items — no copy-pasting from six threads.",
+  },
+  {
+    n: "03",
+    title: "Build the day-by-day",
+    desc: "A shared itinerary the whole crew can shape. Confirmations and notes live next to the plan, not buried in an inbox.",
+  },
+  {
+    n: "04",
+    title: "Split the bill, stay friends",
+    desc: "Log what everyone paid, split it your way, and Travaa nets it down to the fewest possible transfers.",
+  },
+];
+
 export interface Detail {
   readonly title: string;
   readonly desc: string;

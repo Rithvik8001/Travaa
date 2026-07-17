@@ -1,33 +1,38 @@
 import Link from "next/link";
+import { Container } from "@/components/ui/container";
 import { CtaLink } from "@/components/ui/cta-link";
 
 export function ClosingCta() {
   return (
-    <section className="border-hairline border-t">
-      <div className="mx-auto w-full max-w-[760px] px-[22px] pt-[104px] pb-[112px] text-center min-[560px]:px-10">
-        <h2 className="text-ink mx-auto mb-[22px] max-w-[620px] text-[32px] leading-[1.05] font-semibold tracking-[-0.04em] text-balance min-[560px]:text-[46px]">
-          Right now, somebody&apos;s group chat is stalling.
-          <span className="text-subtle-foreground mt-2 block font-normal">
-            Go be the one who starts the trip.
-          </span>
-        </h2>
+    <section className="border-hairline relative overflow-hidden border-t">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-48 left-1/2 h-[520px] w-[820px] max-w-[120vw] -translate-x-1/2 rounded-full opacity-40 blur-[150px]"
+        style={{
+          background:
+            "radial-gradient(closest-side, oklch(0.84 0.08 280 / 0.55), transparent)",
+        }}
+      />
 
-        <div className="mt-1.5 flex flex-col items-center justify-center gap-3.5 min-[560px]:flex-row min-[560px]:gap-5">
-          <CtaLink href="/sign-up" className="px-7 py-[15px]">
-            Start a trip — it&apos;s free
-          </CtaLink>
+      <Container className="relative py-[124px]">
+        <h2 className="text-ink max-w-[18ch] text-[40px] leading-[1.0] font-semibold tracking-[-0.045em] text-balance min-[560px]:text-[64px]">
+          Right now, somebody&apos;s group chat is stalling.
+        </h2>
+        <p className="text-muted-foreground mt-6 max-w-[46ch] text-[18px] leading-[1.5] text-pretty">
+          Be the one who starts the trip. Free for your whole crew — no card, no
+          catch.
+        </p>
+
+        <div className="mt-9 flex flex-col items-start gap-3.5 min-[560px]:flex-row min-[560px]:items-center min-[560px]:gap-5">
+          <CtaLink href="/sign-up">Start a trip — it&apos;s free</CtaLink>
           <Link
             href="/demo"
-            className="text-[15.5px] font-medium text-muted-foreground hover:text-ink transition-colors"
+            className="text-muted-foreground hover:text-ink text-[15.5px] font-medium transition-colors"
           >
             Book a demo →
           </Link>
         </div>
-
-        <p className="text-subtle-foreground mt-[22px] text-[13.5px]">
-          Free for your whole crew. No card, no catch.
-        </p>
-      </div>
+      </Container>
     </section>
   );
 }

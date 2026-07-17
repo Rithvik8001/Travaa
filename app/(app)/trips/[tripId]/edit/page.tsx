@@ -24,7 +24,7 @@ export default async function EditTripPage({
   if (trip.archivedAt) redirect(`/trips/${tripId}`);
 
   return (
-    <main className="flex flex-1 items-center justify-center p-6">
+    <main className="flex flex-1 items-center justify-center p-6 pb-28">
       <div className="animate-pop w-full max-w-[400px]">
         <Wordmark className="mb-7 justify-center" />
         <DecisionCard title="Edit trip" subtitle="Update the details as plans firm up.">

@@ -13,7 +13,7 @@ export function SiteNav() {
   return (
     <header className="border-hairline bg-background/80 sticky top-0 z-50 border-b backdrop-blur-[18px]">
       <Container className="flex h-[66px] items-center justify-between">
-        <Wordmark showLabel={false} markClassName="size-7" />
+        <Wordmark markClassName="size-[26px]" />
 
         <nav
           aria-label="Primary"

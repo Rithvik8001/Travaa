@@ -1,41 +1,34 @@
 import { STEPS } from "@/components/landing/content";
 import { Container } from "@/components/ui/container";
+import { Eyebrow } from "@/components/ui/eyebrow";
 
 export function HowItWorks() {
   return (
-    <section
-      id="how"
-      className="border-hairline bg-muted scroll-mt-[66px] border-y"
-    >
-      <Container className="py-[92px]">
-        <h2 className="text-ink mb-14 text-[32px] font-semibold tracking-[-0.03em]">
-          Three steps from group chat to gate.
-        </h2>
+    <section id="how" className="bg-muted border-hairline scroll-mt-[66px] border-t">
+      <Container className="py-[100px]">
+        <div className="mb-16 max-w-[560px]">
+          <Eyebrow className="mb-5">How it works</Eyebrow>
+          <h2 className="text-ink text-[32px] leading-[1.1] font-semibold tracking-[-0.035em] text-balance min-[560px]:text-[40px]">
+            Three steps from group chat to gate.
+          </h2>
+        </div>
 
-        <ol className="border-border grid border-t min-[900px]:grid-cols-3">
-          {STEPS.map((step, index) => (
-            <li
-              key={step.n}
-              className={[
-                "pt-6 pb-6 min-[900px]:py-[34px] min-[900px]:pr-[30px]",
-                // Columns after the first sit against a divider and need room to breathe.
-                index > 0 &&
-                  "border-hairline border-t min-[900px]:border-t-0 min-[900px]:pl-[30px]",
-                index < STEPS.length - 1 && "min-[900px]:border-r",
-              ]
-                .filter(Boolean)
-                .join(" ")}
-            >
-              <div
+        <ol className="grid gap-x-10 gap-y-12 min-[900px]:grid-cols-3">
+          {STEPS.map((step) => (
+            <li key={step.n} className="flex flex-col">
+              <span
                 aria-hidden
-                className="bg-brand/10 text-brand-ink mb-5 flex size-8 items-center justify-center rounded-full text-[14px] font-semibold tabular-nums"
+                className="text-[64px] leading-none font-semibold tracking-[-0.04em] tabular-nums text-transparent"
+                style={{
+                  WebkitTextStroke: "1.25px oklch(0.585 0.19 266 / 0.4)",
+                }}
               >
                 {step.n}
-              </div>
-              <h3 className="text-ink mb-[9px] text-[19px] font-semibold tracking-[-0.02em]">
+              </span>
+              <h3 className="text-ink mt-6 text-[20px] font-semibold tracking-[-0.02em]">
                 {step.title}
               </h3>
-              <p className="max-w-[280px] text-[14.5px] leading-[1.6] text-muted-foreground">
+              <p className="text-muted-foreground mt-2.5 max-w-[320px] text-[15px] leading-[1.6] text-pretty">
                 {step.desc}
               </p>
             </li>

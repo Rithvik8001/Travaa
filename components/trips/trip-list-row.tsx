@@ -1,36 +1,41 @@
 import Link from "next/link";
 import type { Trip } from "@/lib/db/trips";
 import { tripCover } from "@/lib/trips/cover";
-import { formatWindow } from "@/lib/trips/format";
+import { formatWindow, relativeToNow } from "@/lib/trips/format";
 
-/** One dashboard trip row (Travaa.dc.html trip list). Server-rendered — no client JS. */
+/** One dashboard trip card. Server-rendered — no client JS. */
 export function TripListRow({ trip }: { readonly trip: Trip }) {
   const meta = [formatWindow(trip.startDate, trip.endDate), trip.destination]
     .filter(Boolean)
     .join(" · ");
+  const relative = relativeToNow(trip.startDate);
 
   return (
     <Link
       href={`/trips/${trip.id}`}
-      className="border-hairline hover:bg-surface-sunken flex items-center gap-4 border-b px-5 py-4 transition-colors last:border-b-0"
+      className="group bg-surface shadow-card hover:shadow-border-hover flex flex-col overflow-hidden rounded-[16px] transition-[box-shadow,transform] duration-200 active:scale-[0.99]"
     >
       <span
         aria-hidden
-        className="size-[52px] shrink-0 rounded-[10px]"
+        className="relative h-[104px] w-full shadow-[inset_0_0_0_1px_oklch(0_0_0/0.06)]"
         style={{ background: tripCover(trip.id) }}
-      />
-      <span className="min-w-0 flex-1">
-        <span className="text-ink block truncate text-[15.5px] font-semibold tracking-[-0.015em]">
+      >
+        <span className="text-brand-ink absolute top-3 right-3 rounded-full bg-white/90 px-2.5 py-[3.5px] text-[10px] font-semibold tracking-[0.04em] uppercase backdrop-blur-sm">
+          Planning
+        </span>
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col gap-1 p-4">
+        <span className="text-ink truncate text-[16px] font-semibold tracking-[-0.015em]">
           {trip.name}
         </span>
-        {meta ? (
-          <span className="text-subtle-foreground mt-px block truncate text-[13px]">
-            {meta}
+        <span className="text-subtle-foreground truncate text-[13px]">
+          {meta || "No dates yet"}
+        </span>
+        {relative ? (
+          <span className="text-brand-ink mt-1.5 text-[12.5px] font-medium">
+            {relative}
           </span>
         ) : null}
-      </span>
-      <span className="text-brand-ink bg-brand/10 shrink-0 rounded-full px-2.5 py-[3.5px] text-[10.5px] font-semibold tracking-[0.02em] whitespace-nowrap uppercase">
-        Planning
       </span>
     </Link>
   );

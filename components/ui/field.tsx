@@ -21,8 +21,11 @@ export function Field({ label, error, children }: FieldProps) {
   const errorId = `${id}-error`;
 
   return (
-    <div className="flex flex-col gap-[6px]">
-      <label htmlFor={id} className="text-foreground text-[13px] font-medium tracking-[-0.01em]">
+    <div className="flex flex-col gap-2">
+      <label
+        htmlFor={id}
+        className="text-foreground text-[13px] font-medium tracking-[-0.006em]"
+      >
         {label}
       </label>
       {children({
@@ -31,7 +34,7 @@ export function Field({ label, error, children }: FieldProps) {
         "aria-describedby": error ? errorId : undefined,
       })}
       {error ? (
-        <p id={errorId} className="text-danger text-[13px]">
+        <p id={errorId} className="text-danger text-[12.5px] leading-[1.4]">
           {error}
         </p>
       ) : null}

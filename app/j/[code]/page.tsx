@@ -48,7 +48,7 @@ export default async function JoinPage({
 
         <Card className="shadow-dialog overflow-hidden">
           <div
-            className="relative h-[140px]"
+            className="relative h-[140px] shadow-[inset_0_0_0_1px_oklch(0_0_0/0.06)]"
             style={{ background: tripCover(trip.id) }}
           >
             <div className="absolute inset-0 flex items-end bg-gradient-to-b from-transparent to-black/20 p-[18px]">

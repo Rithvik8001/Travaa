@@ -2,30 +2,33 @@ import { QUOTES } from "@/components/landing/content";
 import { Avatar } from "@/components/ui/avatar";
 import { Container } from "@/components/ui/container";
 
+/** One oversized pull quote, the marquee human moment on the page. */
 export function Testimonials() {
+  const [lead] = QUOTES;
+
   return (
-    <section className="border-hairline bg-muted border-t">
-      <Container className="grid gap-11 py-[92px] min-[900px]:grid-cols-2 min-[900px]:gap-12">
-        {QUOTES.map((quote) => (
-          <figure key={quote.name}>
-            <blockquote className="text-ink text-[23px] leading-[1.38] font-medium tracking-[-0.025em] text-pretty">
-              “{quote.text}”
-            </blockquote>
-            <figcaption className="mt-[22px] flex items-center gap-[11px]">
-              <Avatar
-                initial={quote.initial}
-                color={quote.avatar}
-                className="size-[38px] text-sm"
-              />
-              <div>
-                <div className="text-ink text-[14.5px] font-semibold">
-                  {quote.name}
-                </div>
-                <div className="text-subtle-foreground text-[13px]">{quote.sub}</div>
+    <section className="border-hairline border-t">
+      <Container className="py-[104px]">
+        <figure className="mx-auto max-w-[900px]">
+          <blockquote className="text-ink text-[30px] leading-[1.28] font-semibold tracking-[-0.03em] text-balance min-[560px]:text-[42px] min-[560px]:leading-[1.2]">
+            “{lead.text}”
+          </blockquote>
+          <figcaption className="mt-9 flex items-center gap-3.5">
+            <Avatar
+              initial={lead.initial}
+              color={lead.avatar}
+              className="size-11 text-base"
+            />
+            <div className="leading-tight">
+              <div className="text-ink text-[15px] font-semibold">
+                {lead.name}
               </div>
-            </figcaption>
-          </figure>
-        ))}
+              <div className="text-subtle-foreground text-[13.5px]">
+                {lead.sub}
+              </div>
+            </div>
+          </figcaption>
+        </figure>
       </Container>
     </section>
   );
