@@ -8,12 +8,14 @@ import { InviteDialog } from "@/components/trips/invite-dialog";
 import { LeaveTripButton } from "@/components/trips/leave-trip-button";
 import { SuggestionList } from "@/components/trips/suggestion-list";
 import { ItineraryList } from "@/components/trips/itinerary-list";
+import { PackingEntryCard } from "@/components/trips/packing-entry-card";
 import { avatarColor } from "@/lib/avatar-color";
 import { deleteTrip, leaveTrip, unarchiveTrip } from "@/lib/trips/actions";
 import {
   getDatePoll,
   getSuggestions,
   getItinerary,
+  getPackingLists,
   getTripForUser,
   listTripMembers,
 } from "@/lib/trips/queries";
@@ -43,11 +45,12 @@ export default async function TripPage({
   const trip = await getTripForUser(tripId, user.id);
   if (!trip) notFound();
 
-  const [members, datePoll, suggestions, itinerary] = await Promise.all([
+  const [members, datePoll, suggestions, itinerary, packingLists] = await Promise.all([
     listTripMembers(tripId),
     getDatePoll(tripId, user.id),
     getSuggestions(tripId, user.id),
     getItinerary(tripId),
+    getPackingLists(tripId, user.id),
   ]);
   const isArchived = Boolean(trip.archivedAt);
   const isOwner = trip.ownerId === user.id;
@@ -211,6 +214,8 @@ export default async function TripPage({
             isOrganizer={isOwner}
             readOnly={isArchived}
           />
+
+          <PackingEntryCard tripId={trip.id} lists={packingLists} />
         </div>
       </main>
     </div>

@@ -9,7 +9,9 @@ import {
   inArray,
   isNotNull,
   isNull,
+  or,
 } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/lib/db";
 import {
   trips,
@@ -20,11 +22,19 @@ import {
   tripSuggestionVotes,
   tripSuggestionComments,
   tripItineraryItems,
+  tripPackingLists,
+  tripPackingItems,
 } from "@/lib/db/trips";
 import { user } from "@/lib/db/schema";
 import type { Availability, DateOptionView } from "@/lib/trips/dates";
 import type { CommentView, SuggestionView } from "@/lib/trips/suggestions";
 import { sortItinerary, type ItineraryItemView } from "@/lib/trips/itinerary";
+import {
+  packingProgress,
+  sortPackingItems,
+  type PackingItemView,
+  type PackingListView,
+} from "@/lib/trips/packing";
 
 /** Active trips the user belongs to, newest first. "Your trips" for the dashboard. */
 export async function listTripsForUser(userId: string) {
@@ -327,4 +337,80 @@ export async function getItinerary(
     .orderBy(asc(tripItineraryItems.createdAt));
 
   return sortItinerary(rows);
+}
+
+/** Shared lists plus only the caller's private lists. Privacy is enforced in SQL. */
+export async function getPackingLists(
+  tripId: string,
+  userId: string,
+): Promise<PackingListView[]> {
+  if (!(await assertMember(tripId, userId))) return [];
+
+  const lists = await db
+    .select({
+      id: tripPackingLists.id,
+      name: tripPackingLists.name,
+      visibility: tripPackingLists.visibility,
+      createdBy: tripPackingLists.createdBy,
+      createdAt: tripPackingLists.createdAt,
+    })
+    .from(tripPackingLists)
+    .where(
+      and(
+        eq(tripPackingLists.tripId, tripId),
+        or(
+          eq(tripPackingLists.visibility, "shared"),
+          and(
+            eq(tripPackingLists.visibility, "private"),
+            eq(tripPackingLists.createdBy, userId),
+          ),
+        ),
+      ),
+    )
+    .orderBy(asc(tripPackingLists.createdAt));
+
+  if (lists.length === 0) return [];
+
+  const assignee = alias(user, "packing_assignee");
+  const completer = alias(user, "packing_completer");
+  const rows = await db
+    .select({
+      id: tripPackingItems.id,
+      listId: tripPackingItems.listId,
+      name: tripPackingItems.name,
+      quantity: tripPackingItems.quantity,
+      createdBy: tripPackingItems.createdBy,
+      assignedTo: tripPackingItems.assignedTo,
+      assigneeName: assignee.name,
+      completedAt: tripPackingItems.completedAt,
+      completedBy: tripPackingItems.completedBy,
+      completerName: completer.name,
+      createdAt: tripPackingItems.createdAt,
+    })
+    .from(tripPackingItems)
+    .leftJoin(assignee, eq(assignee.id, tripPackingItems.assignedTo))
+    .leftJoin(completer, eq(completer.id, tripPackingItems.completedBy))
+    .where(inArray(tripPackingItems.listId, lists.map((list) => list.id)))
+    .orderBy(asc(tripPackingItems.createdAt));
+
+  const itemsByList = new Map<string, PackingItemView[]>();
+  for (const row of rows) {
+    const items = itemsByList.get(row.listId) ?? [];
+    items.push(row);
+    itemsByList.set(row.listId, items);
+  }
+
+  return lists.map((list) => {
+    const items = sortPackingItems(itemsByList.get(list.id) ?? []);
+    const progress = packingProgress(items);
+    return {
+      id: list.id,
+      name: list.name,
+      visibility: list.visibility,
+      createdBy: list.createdBy,
+      items,
+      totalCount: progress.total,
+      completedCount: progress.completed,
+    };
+  });
 }

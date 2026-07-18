@@ -1,7 +1,7 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
-import { and, eq, max } from "drizzle-orm";
+import { and, eq, inArray, max } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
@@ -14,6 +14,8 @@ import {
   tripSuggestionVotes,
   tripSuggestionComments,
   tripItineraryItems,
+  tripPackingLists,
+  tripPackingItems,
 } from "@/lib/db/trips";
 import { assertMember } from "@/lib/trips/queries";
 import { nights, type Availability } from "@/lib/trips/dates";
@@ -178,9 +180,42 @@ export async function removeMember(tripId: string, userId: string): Promise<void
   if (!trip) redirect("/dashboard");
   if (userId === trip.ownerId) return;
 
-  await db
-    .delete(tripMembers)
-    .where(and(eq(tripMembers.tripId, tripId), eq(tripMembers.userId, userId)));
+  await db.transaction(async (tx) => {
+    const memberLists = tx
+      .select({ id: tripPackingLists.id })
+      .from(tripPackingLists)
+      .where(eq(tripPackingLists.tripId, tripId));
+    await tx
+      .update(tripPackingItems)
+      .set({ assignedTo: null })
+      .where(
+        and(
+          eq(tripPackingItems.assignedTo, userId),
+          inArray(tripPackingItems.listId, memberLists),
+        ),
+      );
+    await tx
+      .update(tripPackingItems)
+      .set({ completedBy: null })
+      .where(
+        and(
+          eq(tripPackingItems.completedBy, userId),
+          inArray(tripPackingItems.listId, memberLists),
+        ),
+      );
+    await tx
+      .delete(tripPackingLists)
+      .where(
+        and(
+          eq(tripPackingLists.tripId, tripId),
+          eq(tripPackingLists.createdBy, userId),
+          eq(tripPackingLists.visibility, "private"),
+        ),
+      );
+    await tx
+      .delete(tripMembers)
+      .where(and(eq(tripMembers.tripId, tripId), eq(tripMembers.userId, userId)));
+  });
 
   revalidatePath("/dashboard");
   revalidatePath(`/trips/${tripId}`);
@@ -197,9 +232,42 @@ export async function leaveTrip(tripId: string): Promise<void> {
   if (!trip) redirect("/dashboard");
   if (trip.ownerId === user.id) redirect(`/trips/${tripId}`);
 
-  await db
-    .delete(tripMembers)
-    .where(and(eq(tripMembers.tripId, tripId), eq(tripMembers.userId, user.id)));
+  await db.transaction(async (tx) => {
+    const memberLists = tx
+      .select({ id: tripPackingLists.id })
+      .from(tripPackingLists)
+      .where(eq(tripPackingLists.tripId, tripId));
+    await tx
+      .update(tripPackingItems)
+      .set({ assignedTo: null })
+      .where(
+        and(
+          eq(tripPackingItems.assignedTo, user.id),
+          inArray(tripPackingItems.listId, memberLists),
+        ),
+      );
+    await tx
+      .update(tripPackingItems)
+      .set({ completedBy: null })
+      .where(
+        and(
+          eq(tripPackingItems.completedBy, user.id),
+          inArray(tripPackingItems.listId, memberLists),
+        ),
+      );
+    await tx
+      .delete(tripPackingLists)
+      .where(
+        and(
+          eq(tripPackingLists.tripId, tripId),
+          eq(tripPackingLists.createdBy, user.id),
+          eq(tripPackingLists.visibility, "private"),
+        ),
+      );
+    await tx
+      .delete(tripMembers)
+      .where(and(eq(tripMembers.tripId, tripId), eq(tripMembers.userId, user.id)));
+  });
 
   revalidatePath("/dashboard");
   redirect("/dashboard");
@@ -701,4 +769,193 @@ export async function removeItineraryItem(
   await db.delete(tripItineraryItems).where(eq(tripItineraryItems.id, itemId));
 
   revalidatePath(`/trips/${item.tripId}`);
+}
+
+/* ── Packing lists ───────────────────────────────────────────────────────── */
+
+type PackingVisibility = "shared" | "private";
+
+function packingPath(tripId: string) {
+  return `/trips/${tripId}/packing`;
+}
+
+function parsePackingName(value: string, kind: "list" | "item") {
+  const name = value.trim();
+  const maxLength = kind === "list" ? 80 : 120;
+  if (!name) return { ok: false, error: `Give your ${kind} a name.` } as const;
+  if (name.length > maxLength)
+    return { ok: false, error: `Keep the ${kind} name under ${maxLength} characters.` } as const;
+  return { ok: true, name } as const;
+}
+
+function parseQuantity(value: number) {
+  if (!Number.isInteger(value) || value < 1 || value > 999)
+    return { ok: false, error: "Quantity must be a whole number from 1 to 999." } as const;
+  return { ok: true, quantity: value } as const;
+}
+
+async function accessiblePackingList(listId: string, userId: string) {
+  const list = await db.query.tripPackingLists.findFirst({
+    where: eq(tripPackingLists.id, listId),
+  });
+  if (!list) return { ok: false, error: "That packing list no longer exists." } as const;
+
+  const trip = await activeMemberTrip(list.tripId, userId);
+  if ("error" in trip) return { ok: false, error: trip.error } as const;
+  if (list.visibility === "private" && list.createdBy !== userId)
+    return { ok: false, error: "That packing list is private." } as const;
+  return { ok: true, list, ownerId: trip.ownerId } as const;
+}
+
+async function accessiblePackingItem(itemId: string, userId: string) {
+  const item = await db.query.tripPackingItems.findFirst({
+    where: eq(tripPackingItems.id, itemId),
+  });
+  if (!item) return { ok: false, error: "That packing item no longer exists." } as const;
+  const access = await accessiblePackingList(item.listId, userId);
+  if (!access.ok) return access;
+  return { ok: true, item, list: access.list, ownerId: access.ownerId } as const;
+}
+
+export async function createPackingList(
+  tripId: string,
+  input: { name: string; visibility: PackingVisibility },
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+  const trip = await activeMemberTrip(tripId, user.id);
+  if ("error" in trip) return trip;
+  if (input.visibility !== "shared" && input.visibility !== "private")
+    return { error: "Choose shared or private." };
+  const parsed = parsePackingName(input.name, "list");
+  if (!parsed.ok) return { error: parsed.error };
+
+  await db.insert(tripPackingLists).values({
+    id: randomUUID(),
+    tripId,
+    createdBy: user.id,
+    name: parsed.name,
+    visibility: input.visibility,
+  });
+  revalidatePath(packingPath(tripId));
+  revalidatePath(`/trips/${tripId}`);
+}
+
+export async function renamePackingList(
+  listId: string,
+  name: string,
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+  const access = await accessiblePackingList(listId, user.id);
+  if (!access.ok) return { error: access.error };
+  if (access.list.createdBy !== user.id && access.ownerId !== user.id)
+    return { error: "Only the list creator or organizer can rename it." };
+  const parsed = parsePackingName(name, "list");
+  if (!parsed.ok) return { error: parsed.error };
+
+  await db.update(tripPackingLists).set({ name: parsed.name }).where(eq(tripPackingLists.id, listId));
+  revalidatePath(packingPath(access.list.tripId));
+}
+
+export async function deletePackingList(
+  listId: string,
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+  const access = await accessiblePackingList(listId, user.id);
+  if (!access.ok) return { error: access.error };
+  if (access.list.createdBy !== user.id && access.ownerId !== user.id)
+    return { error: "Only the list creator or organizer can delete it." };
+
+  await db.delete(tripPackingLists).where(eq(tripPackingLists.id, listId));
+  revalidatePath(packingPath(access.list.tripId));
+  revalidatePath(`/trips/${access.list.tripId}`);
+}
+
+export async function addPackingItem(
+  listId: string,
+  input: { name: string; quantity: number },
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+  const access = await accessiblePackingList(listId, user.id);
+  if (!access.ok) return { error: access.error };
+  const parsedName = parsePackingName(input.name, "item");
+  if (!parsedName.ok) return { error: parsedName.error };
+  const parsedQuantity = parseQuantity(input.quantity);
+  if (!parsedQuantity.ok) return { error: parsedQuantity.error };
+
+  await db.insert(tripPackingItems).values({
+    id: randomUUID(),
+    listId,
+    createdBy: user.id,
+    name: parsedName.name,
+    quantity: parsedQuantity.quantity,
+  });
+  revalidatePath(packingPath(access.list.tripId));
+  revalidatePath(`/trips/${access.list.tripId}`);
+}
+
+export async function updatePackingItem(
+  itemId: string,
+  input: { name: string; quantity: number },
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+  const access = await accessiblePackingItem(itemId, user.id);
+  if (!access.ok) return { error: access.error };
+  const parsedName = parsePackingName(input.name, "item");
+  if (!parsedName.ok) return { error: parsedName.error };
+  const parsedQuantity = parseQuantity(input.quantity);
+  if (!parsedQuantity.ok) return { error: parsedQuantity.error };
+
+  await db
+    .update(tripPackingItems)
+    .set({ name: parsedName.name, quantity: parsedQuantity.quantity })
+    .where(eq(tripPackingItems.id, itemId));
+  revalidatePath(packingPath(access.list.tripId));
+}
+
+export async function removePackingItem(
+  itemId: string,
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+  const access = await accessiblePackingItem(itemId, user.id);
+  if (!access.ok) return { error: access.error };
+  await db.delete(tripPackingItems).where(eq(tripPackingItems.id, itemId));
+  revalidatePath(packingPath(access.list.tripId));
+  revalidatePath(`/trips/${access.list.tripId}`);
+}
+
+export async function assignPackingItem(
+  itemId: string,
+  assignedTo: string | null,
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+  const access = await accessiblePackingItem(itemId, user.id);
+  if (!access.ok) return { error: access.error };
+  if (access.list.visibility === "private")
+    return { error: "Private items can't be assigned." };
+  if (assignedTo && !(await assertMember(access.list.tripId, assignedTo)))
+    return { error: "Choose a current trip member." };
+
+  await db
+    .update(tripPackingItems)
+    .set({ assignedTo })
+    .where(eq(tripPackingItems.id, itemId));
+  revalidatePath(packingPath(access.list.tripId));
+}
+
+export async function togglePackingItem(
+  itemId: string,
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+  const access = await accessiblePackingItem(itemId, user.id);
+  if (!access.ok) return { error: access.error };
+  const completing = !access.item.completedAt;
+  await db
+    .update(tripPackingItems)
+    .set({
+      completedAt: completing ? new Date() : null,
+      completedBy: completing ? user.id : null,
+    })
+    .where(eq(tripPackingItems.id, itemId));
+  revalidatePath(packingPath(access.list.tripId));
+  revalidatePath(`/trips/${access.list.tripId}`);
 }

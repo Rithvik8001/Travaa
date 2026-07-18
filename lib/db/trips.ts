@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   pgTable,
   pgEnum,
@@ -7,6 +7,7 @@ import {
   integer,
   timestamp,
   index,
+  check,
   uniqueIndex,
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
@@ -74,6 +75,10 @@ export const tripMembers = pgTable(
 
 /** A member's stance on a proposed window — mirrors the landing's Availability. */
 export const availability = pgEnum("availability", ["yes", "maybe", "no"]);
+export const packingVisibility = pgEnum("packing_visibility", [
+  "shared",
+  "private",
+]);
 
 /**
  * Date poll — the candidate windows a crew is choosing between. Anyone in the
@@ -255,6 +260,71 @@ export const tripItineraryItems = pgTable(
   (table) => [index("trip_itinerary_items_tripId_idx").on(table.tripId)],
 );
 
+/** Named packing lists. Private lists are visible only to their creator. */
+export const tripPackingLists = pgTable(
+  "trip_packing_lists",
+  {
+    id: text("id").primaryKey(),
+    tripId: text("trip_id")
+      .notNull()
+      .references(() => trips.id, { onDelete: "cascade" }),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    visibility: packingVisibility("visibility").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("trip_packing_lists_tripId_idx").on(table.tripId),
+    index("trip_packing_lists_private_owner_idx").on(
+      table.tripId,
+      table.createdBy,
+      table.visibility,
+    ),
+  ],
+);
+
+/** Checklist rows. Assignment is available only on shared lists. */
+export const tripPackingItems = pgTable(
+  "trip_packing_items",
+  {
+    id: text("id").primaryKey(),
+    listId: text("list_id")
+      .notNull()
+      .references(() => tripPackingLists.id, { onDelete: "cascade" }),
+    createdBy: text("created_by")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    quantity: integer("quantity").default(1).notNull(),
+    assignedTo: text("assigned_to").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    completedAt: timestamp("completed_at"),
+    completedBy: text("completed_by").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("trip_packing_items_listId_idx").on(table.listId),
+    index("trip_packing_items_assignedTo_idx").on(table.assignedTo),
+    check(
+      "trip_packing_items_quantity_check",
+      sql`${table.quantity} between 1 and 999`,
+    ),
+  ],
+);
+
 export const tripsRelations = relations(trips, ({ one, many }) => ({
   owner: one(user, {
     fields: [trips.ownerId],
@@ -264,7 +334,48 @@ export const tripsRelations = relations(trips, ({ one, many }) => ({
   dateOptions: many(tripDateOptions),
   suggestions: many(tripSuggestions),
   itineraryItems: many(tripItineraryItems),
+  packingLists: many(tripPackingLists),
 }));
+
+export const tripPackingListsRelations = relations(
+  tripPackingLists,
+  ({ one, many }) => ({
+    trip: one(trips, {
+      fields: [tripPackingLists.tripId],
+      references: [trips.id],
+    }),
+    creator: one(user, {
+      fields: [tripPackingLists.createdBy],
+      references: [user.id],
+    }),
+    items: many(tripPackingItems),
+  }),
+);
+
+export const tripPackingItemsRelations = relations(
+  tripPackingItems,
+  ({ one }) => ({
+    list: one(tripPackingLists, {
+      fields: [tripPackingItems.listId],
+      references: [tripPackingLists.id],
+    }),
+    creator: one(user, {
+      fields: [tripPackingItems.createdBy],
+      references: [user.id],
+      relationName: "packingItemCreator",
+    }),
+    assignee: one(user, {
+      fields: [tripPackingItems.assignedTo],
+      references: [user.id],
+      relationName: "packingItemAssignee",
+    }),
+    completer: one(user, {
+      fields: [tripPackingItems.completedBy],
+      references: [user.id],
+      relationName: "packingItemCompleter",
+    }),
+  }),
+);
 
 export const tripMembersRelations = relations(tripMembers, ({ one }) => ({
   trip: one(trips, {
@@ -379,3 +490,5 @@ export type TripSuggestion = typeof tripSuggestions.$inferSelect;
 export type TripSuggestionVote = typeof tripSuggestionVotes.$inferSelect;
 export type TripSuggestionComment = typeof tripSuggestionComments.$inferSelect;
 export type TripItineraryItem = typeof tripItineraryItems.$inferSelect;
+export type TripPackingList = typeof tripPackingLists.$inferSelect;
+export type TripPackingItem = typeof tripPackingItems.$inferSelect;
