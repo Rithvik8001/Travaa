@@ -51,7 +51,7 @@ export default async function TripPage({
     listTripMembers(tripId),
     getDatePoll(tripId, user.id),
     getSuggestions(tripId, user.id),
-    getItinerary(tripId),
+    getItinerary(tripId, user.id),
     getPackingLists(tripId, user.id),
   ]);
   const isArchived = Boolean(trip.archivedAt);
@@ -209,8 +209,9 @@ export default async function TripPage({
           <ItineraryList
             tripId={trip.id}
             items={itinerary}
-            isOrganizer={isOwner}
+            currentUserId={user.id}
             readOnly={isArchived}
+            lockedWindow={lockedWindow}
           />
 
           <PackingEntryCard tripId={trip.id} lists={packingLists} />

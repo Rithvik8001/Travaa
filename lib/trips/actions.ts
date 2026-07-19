@@ -1,7 +1,18 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
-import { and, eq, inArray, max } from "drizzle-orm";
+import {
+  and,
+  asc,
+  eq,
+  gt,
+  inArray,
+  isNull,
+  lt,
+  max,
+  or,
+  sql,
+} from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
@@ -19,6 +30,7 @@ import {
 } from "@/lib/db/trips";
 import { assertMember } from "@/lib/trips/queries";
 import { nights, type Availability } from "@/lib/trips/dates";
+import { isDateInWindow, moveItem } from "@/lib/trips/itinerary";
 import { requireSession } from "@/lib/session";
 
 /** Raw form values; dates arrive as "" or "YYYY-MM-DD". */
@@ -450,14 +462,31 @@ export async function lockDates(
   });
   if (!option) return { error: "That window no longer exists." };
 
-  await db
-    .update(trips)
-    .set({
-      startDate: option.startDate,
-      endDate: option.endDate,
-      datesLockedAt: new Date(),
-    })
-    .where(eq(trips.id, tripId));
+  await db.transaction(async (tx) => {
+    await tx.execute(sql`select ${trips.id} from ${trips} where ${trips.id} = ${tripId} for update`);
+    await tx
+      .update(trips)
+      .set({
+        startDate: option.startDate,
+        endDate: option.endDate,
+        datesLockedAt: new Date(),
+      })
+      .where(eq(trips.id, tripId));
+
+    await tx
+      .update(tripItineraryItems)
+      .set({ date: null })
+      .where(
+        and(
+          eq(tripItineraryItems.tripId, tripId),
+          or(
+            lt(tripItineraryItems.date, option.startDate),
+            gt(tripItineraryItems.date, option.endDate),
+          ),
+        ),
+      );
+    await normalizeItineraryGroup(tx, tripId, null);
+  });
 
   revalidatePath("/dashboard");
   revalidatePath(`/trips/${tripId}`);
@@ -661,13 +690,73 @@ export async function removeComment(
 
 /* ── Itinerary ────────────────────────────────────────────────────────────── */
 
-/** The next sort position for a new item in a trip's itinerary. */
-async function nextItinerarySort(tripId: string): Promise<number> {
-  const [row] = await db
+type Transaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+function itineraryGroupWhere(tripId: string, date: string | null) {
+  return and(
+    eq(tripItineraryItems.tripId, tripId),
+    date === null
+      ? isNull(tripItineraryItems.date)
+      : eq(tripItineraryItems.date, date),
+  );
+}
+
+async function nextItinerarySort(
+  tx: Transaction,
+  tripId: string,
+  date: string | null,
+): Promise<number> {
+  const [row] = await tx
     .select({ max: max(tripItineraryItems.sortOrder) })
     .from(tripItineraryItems)
-    .where(eq(tripItineraryItems.tripId, tripId));
+    .where(itineraryGroupWhere(tripId, date));
   return (row?.max ?? -1) + 1;
+}
+
+async function normalizeItineraryGroup(
+  tx: Transaction,
+  tripId: string,
+  date: string | null,
+): Promise<void> {
+  const rows = await tx
+    .select({ id: tripItineraryItems.id })
+    .from(tripItineraryItems)
+    .where(itineraryGroupWhere(tripId, date))
+    .orderBy(
+      asc(tripItineraryItems.sortOrder),
+      asc(tripItineraryItems.createdAt),
+      asc(tripItineraryItems.id),
+    );
+  for (const [sortOrder, row] of rows.entries()) {
+    await tx
+      .update(tripItineraryItems)
+      .set({ sortOrder })
+      .where(eq(tripItineraryItems.id, row.id));
+  }
+}
+
+async function itineraryAccess(itemId: string, userId: string) {
+  const item = await db.query.tripItineraryItems.findFirst({
+    where: eq(tripItineraryItems.id, itemId),
+  });
+  if (!item) return { ok: false, error: "That itinerary item no longer exists." } as const;
+  if (!(await assertMember(item.tripId, userId)))
+    return { ok: false, error: "You're not a member of this trip." } as const;
+  const trip = await db.query.trips.findFirst({
+    where: eq(trips.id, item.tripId),
+    columns: {
+      ownerId: true,
+      archivedAt: true,
+      datesLockedAt: true,
+      startDate: true,
+      endDate: true,
+    },
+  });
+  if (!trip) return { ok: false, error: "Trip not found." } as const;
+  if (trip.archivedAt) return { ok: false, error: "This trip is archived." } as const;
+  if (item.createdBy !== userId && trip.ownerId !== userId)
+    return { ok: false, error: "You can't edit this itinerary item." } as const;
+  return { ok: true, item, trip } as const;
 }
 
 /**
@@ -682,7 +771,7 @@ export async function convertSuggestion(
 
   const suggestion = await db.query.tripSuggestions.findFirst({
     where: eq(tripSuggestions.id, suggestionId),
-    columns: { tripId: true, title: true, note: true, url: true },
+    columns: { tripId: true, title: true, note: true, url: true, createdBy: true },
   });
   if (!suggestion) return { error: "That idea no longer exists." };
 
@@ -690,19 +779,22 @@ export async function convertSuggestion(
   if (!trip) return { error: "Only the organizer can add to the itinerary." };
   if (trip.archivedAt) return { error: "This trip is archived." };
 
-  await db
-    .insert(tripItineraryItems)
-    .values({
-      id: randomUUID(),
-      tripId: suggestion.tripId,
-      createdBy: user.id,
-      title: suggestion.title,
-      note: suggestion.note,
-      url: suggestion.url,
-      sortOrder: await nextItinerarySort(suggestion.tripId),
-      sourceSuggestionId: suggestionId,
-    })
-    .onConflictDoNothing();
+  await db.transaction(async (tx) => {
+    await tx.execute(sql`select ${trips.id} from ${trips} where ${trips.id} = ${suggestion.tripId} for update`);
+    await tx
+      .insert(tripItineraryItems)
+      .values({
+        id: randomUUID(),
+        tripId: suggestion.tripId,
+        createdBy: suggestion.createdBy,
+        title: suggestion.title,
+        note: suggestion.note,
+        url: suggestion.url,
+        sortOrder: await nextItinerarySort(tx, suggestion.tripId, null),
+        sourceSuggestionId: suggestionId,
+      })
+      .onConflictDoNothing();
+  });
 
   revalidatePath(`/trips/${suggestion.tripId}`);
 }
@@ -715,60 +807,127 @@ export interface ItineraryInput {
   readonly date: string;
 }
 
-/** Add an itinerary item directly (not from an idea). Organizer-only. */
+function parseItineraryInput(
+  input: ItineraryInput,
+  trip: { datesLockedAt: Date | null; startDate: string | null; endDate: string | null },
+):
+  | { fields: { title: string; note: string | null; url: string | null; date: string | null } }
+  | { error: string } {
+  const title = input.title.trim();
+  if (!title) return { error: "Give the item a name." } as const;
+  if (title.length > 120) return { error: "Keep the title under 120 characters." } as const;
+  const note = input.note.trim();
+  if (note.length > 500) return { error: "Keep the note under 500 characters." } as const;
+  const url = input.url.trim();
+  if (url && !/^https?:\/\/\S+$/i.test(url))
+    return { error: "Links must start with http:// or https://." } as const;
+  const date = input.date || null;
+  if (date && (!trip.datesLockedAt || !trip.startDate || !trip.endDate))
+    return { error: "Lock the trip dates before assigning a day." } as const;
+  if (date && !isDateInWindow(date, trip.startDate!, trip.endDate!))
+    return { error: "Choose a day within the locked trip dates." } as const;
+  return { fields: { title, note: note || null, url: url || null, date } } as const;
+}
+
+/** Add an itinerary item directly. Any active member. */
 export async function addItineraryItem(
   tripId: string,
   input: ItineraryInput,
 ): Promise<{ error: string } | void> {
   const { user } = await requireSession();
 
-  const trip = await ownedTrip(tripId, user.id);
-  if (!trip) return { error: "Only the organizer can add to the itinerary." };
-  if (trip.archivedAt) return { error: "This trip is archived." };
+  const trip = await activeMemberTrip(tripId, user.id);
+  if ("error" in trip) return trip;
+  const fullTrip = await db.query.trips.findFirst({ where: eq(trips.id, tripId) });
+  if (!fullTrip) return { error: "Trip not found." };
+  const parsed = parseItineraryInput(input, fullTrip);
+  if (!("fields" in parsed)) return { error: parsed.error };
+  const fields = parsed.fields;
 
-  const title = input.title.trim();
-  if (title.length < 1) return { error: "Give the item a name." };
-  if (title.length > 120) return { error: "Keep the title under 120 characters." };
-
-  const note = input.note.trim();
-  if (note.length > 500) return { error: "Keep the note under 500 characters." };
-
-  const url = input.url.trim();
-  if (url && !/^https?:\/\/\S+$/i.test(url))
-    return { error: "Links must start with http:// or https://." };
-
-  await db.insert(tripItineraryItems).values({
-    id: randomUUID(),
-    tripId,
-    createdBy: user.id,
-    title,
-    note: note || null,
-    url: url || null,
-    date: input.date || null,
-    sortOrder: await nextItinerarySort(tripId),
+  await db.transaction(async (tx) => {
+    await tx.execute(sql`select ${trips.id} from ${trips} where ${trips.id} = ${tripId} for update`);
+    await tx.insert(tripItineraryItems).values({
+      id: randomUUID(),
+      tripId,
+      createdBy: user.id,
+      ...fields,
+      sortOrder: await nextItinerarySort(tx, tripId, fields.date),
+    });
   });
 
   revalidatePath(`/trips/${tripId}`);
 }
 
-/** Remove an itinerary item. Organizer-only. */
+export async function updateItineraryItem(
+  itemId: string,
+  input: ItineraryInput,
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+  const access = await itineraryAccess(itemId, user.id);
+  if (!access.ok) return { error: access.error };
+  const parsed = parseItineraryInput(input, access.trip);
+  if (!("fields" in parsed)) return { error: parsed.error };
+  // Reopening the date poll hides day assignment without erasing it. Editing
+  // copy during that period must not silently unschedule the item.
+  const fields = access.trip.datesLockedAt
+    ? parsed.fields
+    : { ...parsed.fields, date: access.item.date };
+
+  await db.transaction(async (tx) => {
+    await tx.execute(sql`select ${trips.id} from ${trips} where ${trips.id} = ${access.item.tripId} for update`);
+    const dateChanged = access.item.date !== fields.date;
+    const sortOrder = dateChanged
+      ? await nextItinerarySort(tx, access.item.tripId, fields.date)
+      : access.item.sortOrder;
+    await tx
+      .update(tripItineraryItems)
+      .set({ ...fields, sortOrder })
+      .where(eq(tripItineraryItems.id, itemId));
+    if (dateChanged)
+      await normalizeItineraryGroup(tx, access.item.tripId, access.item.date);
+  });
+  revalidatePath(`/trips/${access.item.tripId}`);
+}
+
+export async function moveItineraryItem(
+  itemId: string,
+  direction: "up" | "down",
+): Promise<{ error: string } | void> {
+  const { user } = await requireSession();
+  if (direction !== "up" && direction !== "down") return { error: "Unknown move." };
+  const access = await itineraryAccess(itemId, user.id);
+  if (!access.ok) return { error: access.error };
+
+  await db.transaction(async (tx) => {
+    await tx.execute(sql`select ${trips.id} from ${trips} where ${trips.id} = ${access.item.tripId} for update`);
+    const rows = await tx
+      .select({ id: tripItineraryItems.id })
+      .from(tripItineraryItems)
+      .where(itineraryGroupWhere(access.item.tripId, access.item.date))
+      .orderBy(asc(tripItineraryItems.sortOrder), asc(tripItineraryItems.createdAt), asc(tripItineraryItems.id));
+    const index = rows.findIndex((row) => row.id === itemId);
+    const moved = moveItem(rows, index, direction);
+    for (const [sortOrder, row] of moved.entries()) {
+      await tx.update(tripItineraryItems).set({ sortOrder }).where(eq(tripItineraryItems.id, row.id));
+    }
+  });
+  revalidatePath(`/trips/${access.item.tripId}`);
+}
+
+/** Remove an itinerary item. Author or organizer. */
 export async function removeItineraryItem(
   itemId: string,
 ): Promise<{ error: string } | void> {
   const { user } = await requireSession();
 
-  const item = await db.query.tripItineraryItems.findFirst({
-    where: eq(tripItineraryItems.id, itemId),
-    columns: { tripId: true },
+  const access = await itineraryAccess(itemId, user.id);
+  if (!access.ok) return { error: access.error };
+  await db.transaction(async (tx) => {
+    await tx.execute(sql`select ${trips.id} from ${trips} where ${trips.id} = ${access.item.tripId} for update`);
+    await tx.delete(tripItineraryItems).where(eq(tripItineraryItems.id, itemId));
+    await normalizeItineraryGroup(tx, access.item.tripId, access.item.date);
   });
-  if (!item) return;
-
-  const trip = await ownedTrip(item.tripId, user.id);
-  if (!trip) return { error: "Only the organizer can edit the itinerary." };
-
-  await db.delete(tripItineraryItems).where(eq(tripItineraryItems.id, itemId));
-
-  revalidatePath(`/trips/${item.tripId}`);
+  revalidatePath(`/trips/${access.item.tripId}`);
 }
 
 /* ── Packing lists ───────────────────────────────────────────────────────── */

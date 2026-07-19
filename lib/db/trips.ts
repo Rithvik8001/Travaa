@@ -226,11 +226,12 @@ export const tripSuggestionComments = pgTable(
 );
 
 /**
- * The committed plan — items promoted from ideas (or added directly by the
- * organizer). `sourceSuggestionId` links back to the idea it came from and is
+ * The committed plan — items promoted from ideas or added directly by members.
+ * `sourceSuggestionId` links back to the idea it came from and is
  * unique so an idea converts at most once; it's set null (not cascaded) if the
- * idea is later removed, so the plan survives. `date`/`sortOrder` back the
- * day-by-day view to come. Cascades away with the trip.
+ * idea is later removed, so the plan survives. `date` groups the day-by-day
+ * view; `sortOrder` is the position within that date (or Unscheduled) group.
+ * Cascades away with the trip.
  */
 export const tripItineraryItems = pgTable(
   "trip_itinerary_items",

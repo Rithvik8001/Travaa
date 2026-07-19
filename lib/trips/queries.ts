@@ -318,7 +318,15 @@ export async function getSuggestions(
  */
 export async function getItinerary(
   tripId: string,
+  userId: string,
 ): Promise<ItineraryItemView[]> {
+  if (!(await assertMember(tripId, userId))) return [];
+  const trip = await db.query.trips.findFirst({
+    where: eq(trips.id, tripId),
+    columns: { ownerId: true },
+  });
+  if (!trip) return [];
+
   const rows = await db
     .select({
       id: tripItineraryItems.id,
@@ -329,6 +337,7 @@ export async function getItinerary(
       sortOrder: tripItineraryItems.sortOrder,
       createdBy: tripItineraryItems.createdBy,
       createdByName: user.name,
+      createdAt: tripItineraryItems.createdAt,
       sourceSuggestionId: tripItineraryItems.sourceSuggestionId,
     })
     .from(tripItineraryItems)
@@ -336,7 +345,13 @@ export async function getItinerary(
     .where(eq(tripItineraryItems.tripId, tripId))
     .orderBy(asc(tripItineraryItems.createdAt));
 
-  return sortItinerary(rows);
+  return sortItinerary(
+    rows.map((row) => ({
+      ...row,
+      createdAt: row.createdAt.toISOString(),
+      canManage: row.createdBy === userId || trip.ownerId === userId,
+    })),
+  );
 }
 
 /** Shared lists plus only the caller's private lists. Privacy is enforced in SQL. */
