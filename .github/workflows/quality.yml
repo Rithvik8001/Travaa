@@ -19,7 +19,7 @@ jobs:
       BETTER_AUTH_SECRET: ci-only-secret-at-least-thirty-two-characters
       BETTER_AUTH_URL: http://localhost:3000
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.3.14
