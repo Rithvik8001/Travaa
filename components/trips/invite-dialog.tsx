@@ -34,13 +34,16 @@ export function InviteDialog({
   );
   const [copied, setCopied] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [memberError, setMemberError] = useState("");
   const router = useRouter();
 
   const link = code ? `${origin}/j/${code}` : "";
 
   function remove(userId: string) {
     startTransition(async () => {
-      await removeMember(tripId, userId);
+      setMemberError("");
+      const result = await removeMember(tripId, userId);
+      if (result?.error) { setMemberError(result.error); return; }
       router.refresh();
     });
   }
@@ -152,6 +155,7 @@ export function InviteDialog({
                 </div>
               ))}
             </div>
+            {memberError ? <p role="alert" className="text-danger mt-3 text-[12.5px] leading-[1.4]">{memberError}</p> : null}
           </div>
 
           <div className="px-6 pb-[22px]">

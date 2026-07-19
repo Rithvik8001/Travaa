@@ -40,13 +40,17 @@ export const trips = pgTable(
     inviteCode: text("invite_code").unique(),
     archivedAt: timestamp("archived_at"),
     datesLockedAt: timestamp("dates_locked_at"),
+    currency: text("currency").default("USD").notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  (table) => [index("trips_ownerId_idx").on(table.ownerId)],
+  (table) => [
+    index("trips_ownerId_idx").on(table.ownerId),
+    check("trips_currency_check", sql`${table.currency} in ('USD','CAD','EUR','GBP','AUD','NZD','JPY','INR','CHF')`),
+  ],
 );
 
 /**
@@ -373,6 +377,67 @@ export const notifications = pgTable(
   ],
 );
 
+export const tripExpenses = pgTable(
+  "trip_expenses",
+  {
+    id: text("id").primaryKey(),
+    tripId: text("trip_id").notNull().references(() => trips.id, { onDelete: "cascade" }),
+    createdBy: text("created_by").references(() => user.id, { onDelete: "set null" }),
+    paidBy: text("paid_by").notNull().references(() => user.id, { onDelete: "restrict" }),
+    description: text("description").notNull(),
+    amountMinor: integer("amount_minor").notNull(),
+    incurredOn: date("incurred_on").notNull(),
+    note: text("note"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()).notNull(),
+  },
+  (table) => [
+    index("trip_expenses_trip_date_idx").on(table.tripId, table.incurredOn),
+    index("trip_expenses_paidBy_idx").on(table.paidBy),
+    index("trip_expenses_createdBy_idx").on(table.createdBy),
+    check("trip_expenses_amount_check", sql`${table.amountMinor} between 1 and 2000000000`),
+  ],
+);
+
+export const tripExpenseSplits = pgTable(
+  "trip_expense_splits",
+  {
+    id: text("id").primaryKey(),
+    expenseId: text("expense_id").notNull().references(() => tripExpenses.id, { onDelete: "cascade" }),
+    userId: text("user_id").notNull().references(() => user.id, { onDelete: "restrict" }),
+    amountMinor: integer("amount_minor").notNull(),
+  },
+  (table) => [
+    uniqueIndex("trip_expense_splits_expense_user_idx").on(table.expenseId, table.userId),
+    index("trip_expense_splits_userId_idx").on(table.userId),
+    check("trip_expense_splits_amount_check", sql`${table.amountMinor} between 1 and 2000000000`),
+  ],
+);
+
+export const tripExpenseSettlements = pgTable(
+  "trip_expense_settlements",
+  {
+    id: text("id").primaryKey(),
+    tripId: text("trip_id").notNull().references(() => trips.id, { onDelete: "cascade" }),
+    createdBy: text("created_by").references(() => user.id, { onDelete: "set null" }),
+    fromUserId: text("from_user_id").notNull().references(() => user.id, { onDelete: "restrict" }),
+    toUserId: text("to_user_id").notNull().references(() => user.id, { onDelete: "restrict" }),
+    amountMinor: integer("amount_minor").notNull(),
+    paidOn: date("paid_on").notNull(),
+    note: text("note"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()).notNull(),
+  },
+  (table) => [
+    index("trip_expense_settlements_trip_date_idx").on(table.tripId, table.paidOn),
+    index("trip_expense_settlements_from_idx").on(table.fromUserId),
+    index("trip_expense_settlements_to_idx").on(table.toUserId),
+    index("trip_expense_settlements_createdBy_idx").on(table.createdBy),
+    check("trip_expense_settlements_amount_check", sql`${table.amountMinor} between 1 and 2000000000`),
+    check("trip_expense_settlements_people_check", sql`${table.fromUserId} <> ${table.toUserId}`),
+  ],
+);
+
 export const tripsRelations = relations(trips, ({ one, many }) => ({
   owner: one(user, {
     fields: [trips.ownerId],
@@ -384,6 +449,8 @@ export const tripsRelations = relations(trips, ({ one, many }) => ({
   itineraryItems: many(tripItineraryItems),
   packingLists: many(tripPackingLists),
   notifications: many(notifications),
+  expenses: many(tripExpenses),
+  settlements: many(tripExpenseSettlements),
 }));
 
 export const notificationsRelations = relations(notifications, ({ one }) => ({
@@ -560,3 +627,6 @@ export type TripPackingList = typeof tripPackingLists.$inferSelect;
 export type TripPackingItem = typeof tripPackingItems.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
 export type NotificationType = (typeof notificationType.enumValues)[number];
+export type TripExpense = typeof tripExpenses.$inferSelect;
+export type TripExpenseSplit = typeof tripExpenseSplits.$inferSelect;
+export type TripExpenseSettlement = typeof tripExpenseSettlements.$inferSelect;

@@ -7,10 +7,11 @@ export function LeaveTripButton({
   action,
 }: {
   /** Bound `leaveTrip`. Redirects to the dashboard on success. */
-  readonly action: () => Promise<void>;
+  readonly action: () => Promise<{ error: string } | void>;
 }) {
   const [confirming, setConfirming] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [error, setError] = useState("");
 
   if (!confirming) {
     return (
@@ -30,7 +31,11 @@ export function LeaveTripButton({
       <button
         type="button"
         disabled={pending}
-        onClick={() => startTransition(() => action())}
+        onClick={() => startTransition(async () => {
+          setError("");
+          const result = await action();
+          if (result?.error) setError(result.error);
+        })}
         className="text-danger font-medium hover:underline disabled:opacity-55"
       >
         {pending ? "Leaving…" : "Leave"}
@@ -43,6 +48,7 @@ export function LeaveTripButton({
       >
         Cancel
       </button>
+      {error ? <span role="alert" className="text-danger text-[12.5px]">{error}</span> : null}
     </div>
   );
 }

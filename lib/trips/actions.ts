@@ -203,22 +203,26 @@ export async function joinTrip(code: string): Promise<void> {
 }
 
 /** Organizer removes a member. The organizer (owner) can never be removed. */
-export async function removeMember(tripId: string, userId: string): Promise<void> {
+export async function removeMember(tripId: string, userId: string): Promise<{ error: string } | void> {
   const { user } = await requireSession();
   const result = await removeMemberAs(db, user.id, tripId, userId);
-  if ("error" in result && result.error === "Only the organizer can remove members.") redirect("/dashboard");
+  if ("error" in result) {
+    if (result.error === "Only the organizer can remove members.") redirect("/dashboard");
+    return { error: result.error ?? "Member removal failed." };
+  }
 
   revalidatePath("/dashboard");
   revalidatePath(`/trips/${tripId}`);
 }
 
 /** A member leaves a trip. The organizer can't leave — they delete the trip instead. */
-export async function leaveTrip(tripId: string): Promise<void> {
+export async function leaveTrip(tripId: string): Promise<{ error: string } | void> {
   const { user } = await requireSession();
   const result = await leaveTripAs(db, user.id, tripId);
   if ("error" in result) {
     if (result.error === "The organizer can't leave their trip.") redirect(`/trips/${tripId}`);
-    redirect("/dashboard");
+    if (result.error === "Trip not found." || result.error === "You're not a member of this trip.") redirect("/dashboard");
+    return { error: result.error ?? "Leaving the trip failed." };
   }
 
   revalidatePath("/dashboard");

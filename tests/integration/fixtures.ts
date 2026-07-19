@@ -4,6 +4,9 @@ import type { DatabaseExecutor } from "../../lib/db/client";
 import { user } from "../../lib/db/schema";
 import {
   notifications,
+  tripExpenseSettlements,
+  tripExpenseSplits,
+  tripExpenses,
   tripItineraryItems,
   tripMembers,
   tripPackingItems,
@@ -96,6 +99,36 @@ export async function createNotification(
 ) {
   const [row] = await executor.insert(notifications).values({
     id: fixtureId("notification"), tripId, recipientId, actorId, type, eventKey: fixtureId("event"),
+  }).returning();
+  return row;
+}
+
+export async function createExpense(
+  executor: DatabaseExecutor,
+  tripId: string,
+  createdBy: string,
+  paidBy: string,
+  amountMinor: number,
+  shares: Array<{ userId: string; amountMinor: number }>,
+) {
+  const id = fixtureId("expense");
+  const [row] = await executor.insert(tripExpenses).values({
+    id, tripId, createdBy, paidBy, amountMinor, description: "Fixture expense", incurredOn: "2026-07-18",
+  }).returning();
+  await executor.insert(tripExpenseSplits).values(shares.map((share) => ({ id: fixtureId("split"), expenseId: id, ...share })));
+  return row;
+}
+
+export async function createSettlement(
+  executor: DatabaseExecutor,
+  tripId: string,
+  createdBy: string,
+  fromUserId: string,
+  toUserId: string,
+  amountMinor: number,
+) {
+  const [row] = await executor.insert(tripExpenseSettlements).values({
+    id: fixtureId("settlement"), tripId, createdBy, fromUserId, toUserId, amountMinor, paidOn: "2026-07-18",
   }).returning();
   return row;
 }

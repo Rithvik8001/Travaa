@@ -1,7 +1,6 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { migrate } from "drizzle-orm/neon-serverless/migrator";
 import { createDatabase } from "../lib/db/client";
 
 const BASELINE = resolve("drizzle/0000_baseline.sql");
@@ -65,13 +64,14 @@ function diffCatalog(expected: Record<string, unknown>, actual: Record<string, u
   return differences;
 }
 
-async function prepareBaselineDatabase(pool: Pool, database: ReturnType<typeof createDatabase>["db"]) {
+async function prepareBaselineDatabase(pool: Pool) {
   const client = await pool.connect();
   try {
     await client.query("select pg_advisory_lock($1)", [LOCK_ID]);
     await client.query("drop schema if exists public cascade");
     await client.query("create schema public");
-    await migrate(database, { migrationsFolder: "./drizzle" });
+    const baselineSql = (await readFile(BASELINE, "utf8")).replaceAll("--> statement-breakpoint", "");
+    await client.query(baselineSql);
   } finally {
     await client.query("select pg_advisory_unlock($1)", [LOCK_ID]);
     client.release();
@@ -89,7 +89,7 @@ async function main() {
   const test = createDatabase(testUrl);
   try {
     await assertTestDatabase(test.pool, testUrl, databaseUrl);
-    await prepareBaselineDatabase(test.pool, test.db);
+    await prepareBaselineDatabase(test.pool);
     const [expected, actual] = await Promise.all([catalog(test.pool), catalog(development.pool)]);
     const differences = diffCatalog(expected, actual);
     if (differences.length) throw new Error(`Schema parity check failed:\n\n${differences.join("\n\n")}`);

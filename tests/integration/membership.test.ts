@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { notifications, tripMembers, tripPackingItems, tripPackingLists } from "../../lib/db/trips";
 import { leaveTripAs, removeMemberAs } from "../../lib/trips/membership-mutations";
 import { testDb } from "./database";
-import { addMember, createNotification, createPackingItem, createPackingList, createTrip, createUser } from "./fixtures";
+import { addMember, createExpense, createNotification, createPackingItem, createPackingList, createSettlement, createTrip, createUser } from "./fixtures";
 
 describe("membership cleanup", () => {
   test("organizer removal clears private state and preserves shared content", async () => {
@@ -36,6 +36,19 @@ describe("membership cleanup", () => {
     await addMember(testDb, trip.id, member.id);
     expect(await leaveTripAs(testDb, owner.id, trip.id)).toHaveProperty("error");
     expect(await leaveTripAs(testDb, outsider.id, trip.id)).toHaveProperty("error");
+    expect(await leaveTripAs(testDb, member.id, trip.id)).toEqual({ ok: true });
+  });
+
+  test("blocks departure until the member's expense balance is settled", async () => {
+    const owner = await createUser(testDb, "money-owner");
+    const member = await createUser(testDb, "money-member");
+    const trip = await createTrip(testDb, owner.id);
+    await addMember(testDb, trip.id, member.id);
+    await createExpense(testDb, trip.id, owner.id, owner.id, 1000, [
+      { userId: owner.id, amountMinor: 500 }, { userId: member.id, amountMinor: 500 },
+    ]);
+    expect(await leaveTripAs(testDb, member.id, trip.id)).toHaveProperty("error");
+    await createSettlement(testDb, trip.id, member.id, member.id, owner.id, 500);
     expect(await leaveTripAs(testDb, member.id, trip.id)).toEqual({ ok: true });
   });
 });

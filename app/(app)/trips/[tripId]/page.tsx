@@ -11,6 +11,7 @@ import { LeaveTripButton } from "@/components/trips/leave-trip-button";
 import { SuggestionList } from "@/components/trips/suggestion-list";
 import { ItineraryList } from "@/components/trips/itinerary-list";
 import { PackingEntryCard } from "@/components/trips/packing-entry-card";
+import { ExpensesEntryCard } from "@/components/trips/expenses-entry-card";
 import { avatarColor } from "@/lib/avatar-color";
 import { deleteTrip, leaveTrip, unarchiveTrip } from "@/lib/trips/actions";
 import {
@@ -24,6 +25,7 @@ import {
 import { tripCover } from "@/lib/trips/cover";
 import { formatWindow, relativeToNow } from "@/lib/trips/format";
 import { requireSession } from "@/lib/session";
+import { getExpenseWorkspace } from "@/lib/trips/expense-queries";
 
 export async function generateMetadata({
   params,
@@ -50,12 +52,13 @@ export default async function TripPage({
   const trip = await getTripForUser(tripId, user.id);
   if (!trip) notFound();
 
-  const [members, datePoll, suggestions, itinerary, packingLists] = await Promise.all([
+  const [members, datePoll, suggestions, itinerary, packingLists, expenses] = await Promise.all([
     listTripMembers(tripId),
     getDatePoll(tripId, user.id),
     getSuggestions(tripId, user.id),
     getItinerary(tripId, user.id),
     getPackingLists(tripId, user.id),
+    getExpenseWorkspace(tripId, user.id),
   ]);
   const isArchived = Boolean(trip.archivedAt);
   const isOwner = trip.ownerId === user.id;
@@ -219,6 +222,7 @@ export default async function TripPage({
           />
 
           <PackingEntryCard tripId={trip.id} lists={packingLists} />
+          {expenses ? <ExpensesEntryCard tripId={trip.id} workspace={expenses} /> : null}
         </div>
       </main>
     </div>
