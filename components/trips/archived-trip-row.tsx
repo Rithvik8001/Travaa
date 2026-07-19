@@ -1,10 +1,18 @@
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 import type { Trip } from "@/lib/db/trips";
 import { tripCover } from "@/lib/trips/cover";
 import { formatWindow } from "@/lib/trips/format";
+import { cn } from "@/lib/utils";
 
-/** A quiet archived trip row — a compact, muted list cell rather than a card. */
-export function ArchivedTripRow({ trip }: { readonly trip: Trip }) {
+/** A quiet archived trip cell — a compact, muted row inside the archived grid. */
+export function ArchivedTripRow({
+  trip,
+  className,
+}: {
+  readonly trip: Trip;
+  readonly className?: string;
+}) {
   const meta = [formatWindow(trip.startDate, trip.endDate), trip.destination]
     .filter(Boolean)
     .join(" · ");
@@ -12,26 +20,29 @@ export function ArchivedTripRow({ trip }: { readonly trip: Trip }) {
   return (
     <Link
       href={`/trips/${trip.id}`}
-      className="group hover:bg-surface flex items-center gap-3.5 rounded-[12px] px-3 py-3 transition-colors"
+      className={cn(
+        "group hover:bg-surface-2 flex items-center gap-3.5 p-4 transition-colors duration-150",
+        className,
+      )}
     >
       <span
         aria-hidden
-        className="size-9 shrink-0 rounded-[8px] opacity-70 shadow-[inset_0_0_0_1px_oklch(0_0_0/0.06)]"
+        className="border-hairline size-8 shrink-0 rounded-[6px] border opacity-70"
         style={{ background: tripCover(trip.id) }}
       />
       <span className="min-w-0 flex-1">
-        <span className="text-foreground group-hover:text-ink block truncate text-[14.5px] font-medium transition-colors">
+        <span className="text-foreground group-hover:text-ink block truncate text-[14px] font-medium transition-colors">
           {trip.name}
         </span>
         {meta ? (
-          <span className="text-subtle-foreground block truncate text-[12.5px]">
+          <span className="text-subtle-foreground block truncate font-mono text-[11.5px]">
             {meta}
           </span>
         ) : null}
       </span>
-      <span className="text-subtle-foreground shrink-0 text-[12px] tracking-[0.04em] uppercase">
+      <Badge tone="outline" size="sm">
         Archived
-      </span>
+      </Badge>
     </Link>
   );
 }

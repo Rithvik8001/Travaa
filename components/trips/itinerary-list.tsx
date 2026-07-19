@@ -2,7 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { MotionItem, PresenceList } from "@/components/ui/motion";
 import { ItineraryForm } from "@/components/trips/itinerary-form";
 import { formatWindow } from "@/lib/trips/format";
 import type { ItineraryItemView } from "@/lib/trips/itinerary";
@@ -41,7 +43,7 @@ export function ItineraryList({
   }
 
   return (
-    <section className="mt-12">
+    <section>
       <div className="mb-4">
         <h2 className="text-ink text-[19px] font-semibold tracking-[-0.02em]">
           Itinerary
@@ -56,9 +58,9 @@ export function ItineraryList({
       {items.length === 0 ? (
         <Card>
           <p className="text-subtle-foreground mx-auto max-w-[42ch] px-5 py-10 text-center text-[14px] leading-[1.55]">
-            Nothing on the itinerary yet.{" "}
+            No plans set in stone yet.{" "}
             {canManage
-              ? "Add an idea from above or an item below."
+              ? "Promote a favourite idea from above, or add an item below."
               : readOnly
                 ? "Nothing was planned."
                 : "The organizer builds this from the ideas above."}
@@ -66,8 +68,10 @@ export function ItineraryList({
         </Card>
       ) : (
         <div className="flex flex-col gap-3">
-          {items.map((item) => (
-            <Card key={item.id} className="px-5 py-[16px]">
+          <PresenceList>
+            {items.map((item) => (
+              <MotionItem key={item.id}>
+                <Card className="px-5 py-[16px]">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2.5">
@@ -76,7 +80,7 @@ export function ItineraryList({
                         href={item.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-ink hover:text-brand-ink text-[15.5px] font-semibold tracking-[-0.01em] break-words underline-offset-2 hover:underline"
+                        className="text-ink text-[15.5px] font-semibold tracking-[-0.01em] break-words underline-offset-2 hover:underline"
                       >
                         {item.title}
                       </a>
@@ -86,9 +90,9 @@ export function ItineraryList({
                       </span>
                     )}
                     {item.sourceSuggestionId ? (
-                      <span className="text-muted-foreground bg-muted rounded-full px-2 py-[2.5px] text-[10px] font-semibold tracking-[0.02em] uppercase">
+                      <Badge tone="soft" size="sm">
                         From ideas
-                      </span>
+                      </Badge>
                     ) : null}
                   </div>
                   {item.note ? (
@@ -96,7 +100,7 @@ export function ItineraryList({
                       {item.note}
                     </p>
                   ) : null}
-                  <div className="text-subtle-foreground mt-1.5 text-[12.5px]">
+                  <div className="text-subtle-foreground mt-1.5 font-mono text-[11.5px]">
                     {item.date
                       ? formatWindow(item.date, null)
                       : "Unscheduled"}{" "}
@@ -114,8 +118,10 @@ export function ItineraryList({
                   </button>
                 ) : null}
               </div>
-            </Card>
-          ))}
+                </Card>
+              </MotionItem>
+            ))}
+          </PresenceList>
         </div>
       )}
 

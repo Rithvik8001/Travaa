@@ -3,7 +3,9 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { MotionItem, PresenceList } from "@/components/ui/motion";
 import { AvailabilityToggle } from "@/components/trips/availability-toggle";
 import { ProposeWindowForm } from "@/components/trips/propose-window-form";
 import { avatarColor } from "@/lib/avatar-color";
@@ -93,9 +95,9 @@ export function DatePoll({
           </p>
         </div>
         {locked ? (
-          <span className="text-muted-foreground bg-muted shrink-0 rounded-full px-2.5 py-[3.5px] text-[10.5px] font-semibold tracking-[0.02em] uppercase">
+          <Badge tone="soft" size="sm" className="shrink-0">
             Locked
-          </span>
+          </Badge>
         ) : null}
       </div>
 
@@ -105,7 +107,7 @@ export function DatePoll({
             <div className="text-ink text-[16px] font-semibold tracking-[-0.01em]">
               {formatWindow(lockedWindow.startDate, lockedWindow.endDate)}
             </div>
-            <div className="text-subtle-foreground mt-[3px] text-[13px]">
+            <div className="text-subtle-foreground mt-[3px] font-mono text-[12px]">
               {windowMeta(lockedWindow.startDate, lockedWindow.endDate)}
             </div>
           </div>
@@ -125,30 +127,31 @@ export function DatePoll({
       {ranked.length === 0 ? (
         <Card>
           <p className="text-subtle-foreground mx-auto max-w-[42ch] px-5 py-10 text-center text-[14px] leading-[1.55]">
-            No windows yet.{" "}
+            No dates on the table yet.{" "}
             {editable
-              ? "Propose one below and the crew can weigh in."
+              ? "Float a window below — the crew can weigh in with a tap."
               : "Nothing's been proposed."}
           </p>
         </Card>
       ) : (
         <div className="flex flex-col gap-3">
-          {ranked.map((option) => {
-            const isLockedOption =
-              locked &&
-              lockedWindow?.startDate === option.startDate &&
-              lockedWindow?.endDate === option.endDate;
-            const canRemove =
-              editable && (isOrganizer || option.createdBy === currentUserId);
+          <PresenceList>
+            {ranked.map((option) => {
+              const isLockedOption =
+                locked &&
+                lockedWindow?.startDate === option.startDate &&
+                lockedWindow?.endDate === option.endDate;
+              const canRemove =
+                editable && (isOrganizer || option.createdBy === currentUserId);
 
-            return (
-              <Card
-                key={option.id}
-                className={cn(
-                  "px-5 py-[18px]",
-                  isLockedOption && "ring-brand/30 ring-2",
-                )}
-              >
+              return (
+                <MotionItem key={option.id}>
+                  <Card
+                    className={cn(
+                      "px-5 py-[18px]",
+                      isLockedOption && "border-border-strong ring-ring/40 ring-2",
+                    )}
+                  >
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2.5">
@@ -156,12 +159,12 @@ export function DatePoll({
                         {formatWindow(option.startDate, option.endDate)}
                       </span>
                       {option.bestFit ? (
-                        <span className="bg-brand/12 text-brand-ink rounded-full px-2.5 py-[3px] text-[10.5px] font-semibold tracking-[0.02em] uppercase">
+                        <Badge tone="accent" size="sm">
                           Best fit
-                        </span>
+                        </Badge>
                       ) : null}
                     </div>
-                    <div className="text-subtle-foreground mt-[3px] text-[13px]">
+                    <div className="text-subtle-foreground mt-[3px] font-mono text-[12px]">
                       {windowMeta(option.startDate, option.endDate)}
                     </div>
                   </div>
@@ -169,7 +172,7 @@ export function DatePoll({
                     <div className="text-ink text-[17px] font-semibold tabular-nums">
                       {option.counts.available}/{option.counts.total}
                     </div>
-                    <div className="text-subtle-foreground text-[11.5px]">
+                    <div className="text-subtle-foreground font-mono text-[10px] tracking-[0.06em] uppercase">
                       available
                     </div>
                   </div>
@@ -216,7 +219,7 @@ export function DatePoll({
                           type="button"
                           disabled={pending}
                           onClick={() => run(() => lockDates(tripId, option.id))}
-                          className="text-brand-ink text-[13px] font-medium hover:underline disabled:opacity-55"
+                          className="text-ink text-[13px] font-medium underline decoration-[oklch(0_0_0/0.2)] decoration-1 underline-offset-[3px] transition-colors hover:decoration-ink disabled:opacity-55"
                         >
                           Lock these dates
                         </button>
@@ -224,9 +227,11 @@ export function DatePoll({
                     </div>
                   </div>
                 ) : null}
-              </Card>
-            );
-          })}
+                  </Card>
+                </MotionItem>
+              );
+            })}
+          </PresenceList>
         </div>
       )}
 

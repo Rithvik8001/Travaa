@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 
-/** A small uppercase section label with a blue dot — the system's quietest signal. */
+/** A small mono uppercase section label with a lime tick — the quietest signal
+ *  and the only place a splash of accent appears in running content. */
 export function Eyebrow({
   className,
   children,
@@ -9,12 +10,12 @@ export function Eyebrow({
   return (
     <div
       className={cn(
-        "text-muted-foreground inline-flex items-center gap-2 text-[12px] font-semibold tracking-[0.08em] uppercase",
+        "text-muted-foreground inline-flex items-center gap-2 font-mono text-[12px] font-medium tracking-[0.12em] uppercase",
         className,
       )}
       {...props}
     >
-      <span aria-hidden className="bg-brand size-[6px] rounded-full" />
+      <span aria-hidden className="bg-accent size-[6px] rounded-[1px]" />
       {children}
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { SegmentedGroup, segmentedItemClass } from "@/components/ui/segmented";
 import type { Availability } from "@/lib/trips/dates";
 
 const OPTIONS: readonly { value: Availability; label: string }[] = [
@@ -20,11 +20,7 @@ export function AvailabilityToggle({
   readonly onSelect: (value: Availability) => void;
 }) {
   return (
-    <div
-      role="group"
-      aria-label="Your availability"
-      className="border-hairline bg-surface-sunken inline-flex rounded-full border p-[3px]"
-    >
+    <SegmentedGroup aria-label="Your availability">
       {OPTIONS.map((option) => {
         const active = value === option.value;
         return (
@@ -34,17 +30,12 @@ export function AvailabilityToggle({
             disabled={disabled}
             aria-pressed={active}
             onClick={() => onSelect(option.value)}
-            className={cn(
-              "rounded-full px-[13px] py-[5px] text-[12.5px] font-medium transition-colors disabled:opacity-55",
-              active
-                ? "bg-surface text-ink shadow-card"
-                : "text-muted-foreground hover:text-ink",
-            )}
+            className={segmentedItemClass(active, "disabled:opacity-55")}
           >
             {option.label}
           </button>
         );
       })}
-    </div>
+    </SegmentedGroup>
   );
 }

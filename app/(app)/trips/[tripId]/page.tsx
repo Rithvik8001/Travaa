@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { DatePoll } from "@/components/trips/date-poll";
 import { DeleteTripButton } from "@/components/trips/delete-trip-button";
 import { InviteDialog } from "@/components/trips/invite-dialog";
@@ -60,12 +62,13 @@ export default async function TripPage({
       : null;
   const window = formatWindow(trip.startDate, trip.endDate);
   const relative = relativeToNow(trip.startDate);
+  const monogram = trip.name.trim().slice(0, 2).toUpperCase() || "??";
 
   return (
     <div className="min-h-full">
-      {/* Sticky bar — the trip screen's one piece of chrome. */}
-      <div className="border-hairline bg-background/80 sticky top-0 z-20 border-b backdrop-blur-md">
-        <div className="mx-auto flex h-[58px] w-full max-w-[1120px] items-center justify-between px-6">
+      {/* Sticky contextual bar — sits under the app sidebar chrome. */}
+      <div className="border-hairline bg-background/85 sticky top-14 z-20 border-b backdrop-blur-md min-[900px]:top-0">
+        <div className="mx-auto flex h-14 w-full max-w-[1120px] items-center justify-between px-6 min-[900px]:px-10">
           <Link
             href="/dashboard"
             className="text-muted-foreground hover:text-ink group flex items-center gap-1.5 text-[14px] transition-colors"
@@ -78,7 +81,7 @@ export default async function TripPage({
             </span>
             Trips
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {isOwner && !isArchived ? (
               <InviteDialog
                 tripId={trip.id}
@@ -90,17 +93,14 @@ export default async function TripPage({
             {isOwner ? (
               isArchived ? (
                 <form action={unarchiveTrip.bind(null, trip.id)}>
-                  <button
-                    type="submit"
-                    className="text-brand-ink text-[13.5px] font-medium hover:underline"
-                  >
+                  <Button type="submit" variant="outline" size="sm">
                     Unarchive
-                  </button>
+                  </Button>
                 </form>
               ) : (
                 <Link
                   href={`/trips/${trip.id}/edit`}
-                  className="text-brand-ink text-[13.5px] font-medium hover:underline"
+                  className="text-muted-foreground hover:text-ink hover:bg-surface-2 rounded-[6px] px-3 py-1.5 text-[13.5px] font-medium transition-[color,background-color]"
                 >
                   Edit
                 </Link>
@@ -110,31 +110,28 @@ export default async function TripPage({
         </div>
       </div>
 
-      <main className="mx-auto grid w-full max-w-[1120px] gap-8 px-6 pt-8 pb-32 min-[900px]:grid-cols-[312px_1fr]">
+      <main className="mx-auto grid w-full max-w-[1120px] gap-8 px-6 py-8 min-[900px]:grid-cols-[280px_1fr] min-[900px]:px-10 min-[900px]:py-10">
         {/* Identity sidebar */}
-        <aside className="self-start min-[900px]:sticky min-[900px]:top-[82px]">
-          <div className="bg-surface shadow-card overflow-hidden rounded-[18px]">
-            <div
-              aria-hidden
-              className="relative h-[108px] shadow-[inset_0_0_0_1px_oklch(0_0_0/0.06)]"
-              style={{ background: tripCover(trip.id) }}
-            >
+        <aside className="self-start min-[900px]:sticky min-[900px]:top-[88px]">
+          <div className="border-border bg-surface overflow-hidden rounded-[8px] border">
+            <div className="border-hairline flex items-center gap-3 border-b px-5 py-4">
               <span
-                className={
-                  isArchived
-                    ? "text-muted-foreground absolute top-3.5 left-4 rounded-full bg-white/90 px-2.5 py-[3.5px] text-[10px] font-semibold tracking-[0.04em] uppercase backdrop-blur-sm"
-                    : "text-brand-ink absolute top-3.5 left-4 rounded-full bg-white/90 px-2.5 py-[3.5px] text-[10px] font-semibold tracking-[0.04em] uppercase backdrop-blur-sm"
-                }
+                aria-hidden
+                className="border-hairline flex size-10 shrink-0 items-center justify-center rounded-[6px] border font-mono text-[13px] font-medium text-white"
+                style={{ background: tripCover(trip.id) }}
               >
-                {isArchived ? "Archived" : "Planning"}
+                {monogram}
               </span>
+              <Badge tone={isArchived ? "outline" : "soft"} size="sm">
+                {isArchived ? "Archived" : "Planning"}
+              </Badge>
             </div>
 
             <div className="p-5">
               <h1 className="text-ink text-[22px] leading-[1.15] font-semibold tracking-[-0.025em]">
                 {trip.name}
               </h1>
-              <p className="text-muted-foreground mt-1.5 text-[14px]">
+              <p className="text-muted-foreground mt-1.5 font-mono text-[12px]">
                 {window || "Dates to be decided"}
               </p>
               {trip.destination ? (
@@ -143,14 +140,15 @@ export default async function TripPage({
                 </p>
               ) : null}
               {!isArchived && relative ? (
-                <p className="text-brand-ink mt-2.5 text-[13px] font-medium">
+                <p className="text-foreground mt-2.5 text-[13px] font-medium">
                   {relative}
                 </p>
               ) : null}
 
               <div className="border-hairline mt-5 border-t pt-5">
-                <h2 className="text-subtle-foreground mb-3 text-[11.5px] font-semibold tracking-[0.06em] uppercase">
-                  {members.length} {members.length === 1 ? "traveler" : "travelers"}
+                <h2 className="text-subtle-foreground mb-3 font-mono text-[11px] tracking-[0.08em] uppercase">
+                  {members.length}{" "}
+                  {members.length === 1 ? "traveler" : "travelers"}
                 </h2>
                 <ul className="flex flex-col gap-2.5">
                   {members.map((member) => (
@@ -164,7 +162,7 @@ export default async function TripPage({
                         {member.name}
                       </span>
                       {member.isOwner ? (
-                        <span className="text-subtle-foreground text-[11px] tracking-[0.04em] uppercase">
+                        <span className="text-subtle-foreground font-mono text-[10px] tracking-[0.06em] uppercase">
                           Organizer
                         </span>
                       ) : null}
@@ -188,7 +186,7 @@ export default async function TripPage({
         </aside>
 
         {/* Content */}
-        <div className="min-w-0">
+        <div className="flex min-w-0 flex-col gap-12">
           <DatePoll
             tripId={trip.id}
             options={datePoll}

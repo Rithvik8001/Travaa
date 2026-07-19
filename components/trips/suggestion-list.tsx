@@ -3,7 +3,9 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { MotionItem, PresenceList } from "@/components/ui/motion";
 import { CommentThread } from "@/components/trips/comment-thread";
 import { SuggestionForm } from "@/components/trips/suggestion-form";
 import { avatarColor } from "@/lib/avatar-color";
@@ -64,7 +66,7 @@ export function SuggestionList({
   }
 
   return (
-    <section className="mt-12">
+    <section>
       <div className="mb-4">
         <h2 className="text-ink text-[19px] font-semibold tracking-[-0.02em]">
           Ideas
@@ -79,22 +81,24 @@ export function SuggestionList({
       {ranked.length === 0 ? (
         <Card>
           <p className="text-subtle-foreground mx-auto max-w-[42ch] px-5 py-10 text-center text-[14px] leading-[1.55]">
-            No ideas yet.{" "}
+            The idea board is wide open.{" "}
             {readOnly
               ? "Nothing was suggested."
-              : "Add the first one below and let the crew vote."}
+              : "Drop the first one below and let the crew rally behind it."}
           </p>
         </Card>
       ) : (
         <div className="flex flex-col gap-3">
-          {ranked.map((suggestion) => {
-            const canRemove =
-              !readOnly &&
-              (isOrganizer || suggestion.createdBy === currentUserId);
-            const isExpanded = expanded.has(suggestion.id);
+          <PresenceList>
+            {ranked.map((suggestion) => {
+              const canRemove =
+                !readOnly &&
+                (isOrganizer || suggestion.createdBy === currentUserId);
+              const isExpanded = expanded.has(suggestion.id);
 
-            return (
-              <Card key={suggestion.id} className="px-5 py-[18px]">
+              return (
+                <MotionItem key={suggestion.id}>
+                  <Card className="px-5 py-[18px]">
                 <div className="flex items-start gap-4">
                   <button
                     type="button"
@@ -105,11 +109,11 @@ export function SuggestionList({
                       run(() => toggleSuggestionVote(suggestion.id))
                     }
                     className={cn(
-                      "flex w-[52px] shrink-0 flex-col items-center gap-1 rounded-[12px] border py-2 transition-colors",
+                      "flex w-[52px] shrink-0 flex-col items-center gap-1 rounded-[6px] border py-2 transition-[color,background-color,border-color,transform] duration-150 active:scale-[0.96]",
                       suggestion.myVote
-                        ? "border-brand/40 bg-brand/10 text-brand-ink"
-                        : "border-hairline text-muted-foreground hover:border-[oklch(0.87_0.008_80)] hover:text-ink",
-                      "disabled:opacity-55 disabled:hover:border-hairline",
+                        ? "border-ink bg-ink text-background"
+                        : "border-border text-muted-foreground hover:border-border-strong hover:text-ink",
+                      "disabled:opacity-55 disabled:hover:border-border",
                     )}
                   >
                     <span aria-hidden className="text-[12px] leading-none">
@@ -127,7 +131,7 @@ export function SuggestionList({
                           href={suggestion.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-ink hover:text-brand-ink text-[16px] font-semibold tracking-[-0.01em] break-words underline-offset-2 hover:underline"
+                          className="text-ink text-[16px] font-semibold tracking-[-0.01em] break-words underline-offset-2 hover:underline"
                         >
                           {suggestion.title}
                         </a>
@@ -137,9 +141,9 @@ export function SuggestionList({
                         </span>
                       )}
                       {suggestion.topPick ? (
-                        <span className="bg-brand/12 text-brand-ink rounded-full px-2.5 py-[3px] text-[10.5px] font-semibold tracking-[0.02em] uppercase">
+                        <Badge tone="accent" size="sm">
                           Top pick
-                        </span>
+                        </Badge>
                       ) : null}
                     </div>
                     {suggestion.note ? (
@@ -166,9 +170,9 @@ export function SuggestionList({
                             : "Comment"}
                         </button>
                         {suggestion.converted ? (
-                          <span className="text-muted-foreground bg-muted rounded-full px-2 py-[2.5px] text-[10px] font-semibold tracking-[0.02em] uppercase">
+                          <Badge tone="soft" size="sm">
                             Added to itinerary
-                          </span>
+                          </Badge>
                         ) : null}
                       </div>
                       <div className="flex items-center gap-3">
@@ -195,7 +199,7 @@ export function SuggestionList({
                             onClick={() =>
                               run(() => convertSuggestion(suggestion.id))
                             }
-                            className="text-brand-ink text-[12.5px] font-medium hover:underline disabled:opacity-55"
+                            className="text-ink text-[12.5px] font-medium underline decoration-[oklch(0_0_0/0.2)] decoration-1 underline-offset-[3px] transition-colors hover:decoration-ink disabled:opacity-55"
                           >
                             Add to itinerary
                           </button>
@@ -226,9 +230,11 @@ export function SuggestionList({
                     ) : null}
                   </div>
                 </div>
-              </Card>
-            );
-          })}
+                  </Card>
+                </MotionItem>
+              );
+            })}
+          </PresenceList>
         </div>
       )}
 

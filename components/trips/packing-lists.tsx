@@ -2,6 +2,7 @@
 
 import { useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -84,7 +85,7 @@ export function PackingLists({
                 name="visibility"
                 disabled={pending}
                 defaultValue="shared"
-                className="bg-surface-sunken text-foreground focus:bg-surface focus:ring-ring h-[46px] w-full rounded-[12px] px-3 text-[14px] outline-none transition-[background-color,box-shadow] focus:ring-2 disabled:opacity-55"
+                className="border-border bg-surface text-foreground hover:border-border-strong focus:border-border-strong focus:ring-ring/60 h-[42px] w-full rounded-[6px] border px-3 text-[14px] outline-none transition-[border-color,box-shadow] focus:ring-2 disabled:opacity-55"
               >
                 <option value="shared">Shared</option>
                 <option value="private">Private</option>
@@ -100,11 +101,11 @@ export function PackingLists({
 
       {lists.length === 0 ? (
         <Card className="px-6 py-14 text-center">
-          <p className="text-ink text-[16px] font-semibold">Nothing to pack yet</p>
+          <p className="text-ink text-[16px] font-semibold">An empty bag, full of potential</p>
           <p className="text-muted-foreground mx-auto mt-2 max-w-[44ch] text-[14px] leading-[1.55]">
             {readOnly
               ? "No packing lists were created before this trip was archived."
-              : "Create a shared list for the crew or a private one for your own bag."}
+              : "Start a shared list for the crew, or a private one for your own bag."}
           </p>
         </Card>
       ) : (
@@ -176,7 +177,7 @@ function PackingGroup({
         <p className="text-muted-foreground mt-1 text-[13.5px]">{subtitle}</p>
       </div>
       {lists.length === 0 ? (
-        <div className="border-hairline text-subtle-foreground rounded-[16px] border border-dashed px-5 py-8 text-center text-[13.5px]">{empty}</div>
+        <div className="border-border text-subtle-foreground rounded-[8px] border border-dashed px-5 py-8 text-center text-[13.5px]">{empty}</div>
       ) : (
         <div className="space-y-4">
           {lists.map((list) => (
@@ -238,10 +239,10 @@ function PackingListCard({ list, members, canManageList, readOnly, pending, run 
           ) : (
             <div className="flex flex-wrap items-center gap-2.5">
               <h3 className="text-ink truncate text-[16px] font-semibold">{list.name}</h3>
-              <span className="bg-muted text-subtle-foreground rounded-full px-2 py-0.5 text-[10.5px] font-semibold tracking-[0.05em] uppercase">{list.visibility}</span>
+              <Badge tone="soft" size="sm">{list.visibility}</Badge>
             </div>
           )}
-          <p className="text-subtle-foreground mt-1 text-[12.5px] tabular-nums">{list.completedCount} of {list.totalCount} packed</p>
+          <p className="text-subtle-foreground mt-1 font-mono text-[12px] tabular-nums">{list.completedCount} of {list.totalCount} packed</p>
         </div>
         {!readOnly && canManageList && !editingName ? (
           <div className="flex items-center gap-3">
@@ -325,7 +326,7 @@ function PackingItemRow({ item, list, members, readOnly, pending, run }: {
         disabled={readOnly || pending}
         onChange={() => run(() => togglePackingItem(item.id))}
         aria-label={`${item.completedAt ? "Mark unpacked" : "Mark packed"}: ${item.name}`}
-        className="accent-brand size-4 shrink-0 disabled:opacity-55"
+        className="accent-accent size-4 shrink-0 disabled:opacity-55"
       />
       <div className="min-w-[150px] flex-1">
         <span className={item.completedAt ? "text-subtle-foreground text-[14px] line-through" : "text-foreground text-[14px]"}>{item.name}</span>
@@ -340,7 +341,7 @@ function PackingItemRow({ item, list, members, readOnly, pending, run }: {
             value={item.assignedTo ?? ""}
             disabled={readOnly || pending}
             onChange={(event) => run(() => assignPackingItem(item.id, event.target.value || null))}
-            className="bg-surface-sunken text-muted-foreground focus:ring-ring h-8 max-w-[150px] rounded-[10px] px-2 text-[12.5px] outline-none focus:ring-2 disabled:opacity-70"
+            className="border-border bg-surface text-muted-foreground hover:border-border-strong focus:border-border-strong focus:ring-ring/60 h-8 max-w-[150px] rounded-[6px] border px-2 text-[12.5px] outline-none focus:ring-2 disabled:opacity-70"
           >
             <option value="">Unassigned</option>
             {members.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}

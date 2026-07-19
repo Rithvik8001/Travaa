@@ -1,12 +1,13 @@
 @import "tailwindcss";
 
 /**
- * Travaa design tokens — "quiet studio": ultra-minimal, near-monochrome.
- * A cool-neutral paper canvas, near-black ink, and a single considered blue
- * accent (the one that carries the tactile primary button). Depth comes from a
- * layered shadow-as-border, never heavy drop shadows; structure comes from
- * hairlines and whitespace. Every token below is in use — add one only when a
- * component needs it.
+ * Travaa design tokens — "Grid": a bordered, hairline-structured light system.
+ * A pure-white canvas where hairlines (not shadows) do the structural work,
+ * set in Geist Sans with Geist Mono carrying every label, number, and piece of
+ * metadata. One colour — a sharp lime accent — is the only hue on the surface;
+ * it appears on the primary action, the focus ring, the active nav marker, and
+ * a single data highlight. Shadows are reserved for true overlays. Light-only.
+ * Every token below is in use — add one only when a component needs it.
  */
 @theme inline {
   --color-background: var(--background);
@@ -16,132 +17,91 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-subtle-foreground: var(--subtle-foreground);
   --color-surface: var(--surface);
-  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-2: var(--surface-2);
+  --color-surface-inset: var(--surface-inset);
   --color-hairline: var(--hairline);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-muted: var(--accent-muted);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
-  --color-brand: var(--brand);
-  --color-brand-ink: var(--brand-ink);
   --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
   --color-ring: var(--ring);
 
   --font-sans: var(--sans-stack);
   --font-mono: var(--mono-stack);
 
-  /* Shadow-as-border: a 1px ring + two ambient lift layers, pure-black alpha so
-     it reads clean on any surface. The default card treatment. */
-  --shadow-border:
-    0 0 0 1px oklch(0 0 0 / 0.05), 0 1px 2px -1px oklch(0 0 0 / 0.06),
-    0 2px 6px -2px oklch(0 0 0 / 0.04);
-  --shadow-border-hover:
-    0 0 0 1px oklch(0 0 0 / 0.08), 0 2px 4px -2px oklch(0 0 0 / 0.08),
-    0 6px 16px -6px oklch(0 0 0 / 0.08);
-  /* Soft ambient card (list surfaces that shouldn't carry the ring). */
-  --shadow-card:
-    0 0 0 1px oklch(0 0 0 / 0.04), 0 1px 2px -1px oklch(0 0 0 / 0.05),
-    0 4px 12px -8px oklch(0 0 0 / 0.06);
-  /* Elevated surfaces — dialogs, popovers, the centered decision card. */
-  --shadow-dialog:
-    0 0 0 1px oklch(0 0 0 / 0.05), 0 12px 28px -12px oklch(0 0 0 / 0.18),
-    0 28px 60px -32px oklch(0 0 0 / 0.22);
-  --shadow-float:
-    0 0 0 1px oklch(0 0 0 / 0.04), 0 10px 26px -14px oklch(0 0 0 / 0.14);
-  --shadow-lift:
-    0 0 0 1px oklch(0 0 0 / 0.05), 0 20px 44px -28px oklch(0 0 0 / 0.16);
-  --shadow-panel:
-    0 0 0 1px oklch(0 0 0 / 0.05), 0 32px 68px -44px oklch(0 0 0 / 0.2);
+  --radius-inline: 4px;
+  --radius-control: 6px;
+  --radius-card: 8px;
+  --radius-panel: 12px;
 
-  /* Layered tactile button — gloss line, inner ring, crisp edge, soft halo, drop.
-     Unchanged: the primary button is the one rich moment in the whole system. */
-  --shadow-button:
-    inset 0 1px 0 0 oklch(0.86 0.08 264 / 0.6), inset 0 0 0 1px oklch(0.74 0.13 265 / 0.4),
-    0 0 0 1px oklch(0.49 0.2 268), 0 0 0 4px oklch(0.6 0.19 266 / 0.13),
-    0 4px 10px -2px oklch(0.5 0.2 267 / 0.38), 0 12px 26px -8px oklch(0.5 0.21 267 / 0.42);
-  --shadow-button-hover:
-    inset 0 1px 0 0 oklch(0.88 0.08 264 / 0.65), inset 0 0 0 1px oklch(0.76 0.13 265 / 0.45),
-    0 0 0 1px oklch(0.49 0.2 268), 0 0 0 5px oklch(0.6 0.19 266 / 0.16),
-    0 6px 14px -2px oklch(0.5 0.2 267 / 0.42), 0 16px 32px -8px oklch(0.5 0.21 267 / 0.48);
-  --shadow-button-active:
-    inset 0 1px 0 0 oklch(0.82 0.08 264 / 0.5), inset 0 2px 5px 0 oklch(0.4 0.2 268 / 0.35),
-    0 0 0 1px oklch(0.49 0.2 268), 0 0 0 4px oklch(0.6 0.19 266 / 0.12),
-    0 2px 6px -2px oklch(0.5 0.2 267 / 0.35);
-
-  --animate-pop: pop 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-  --animate-rise: rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@keyframes pop {
-  from {
-    opacity: 0;
-    transform: translateY(6px) scale(0.99);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/* One-shot enter for hero/heading chunks — fade + rise + de-blur. Stagger with
-   per-element animation-delay (see [data-rise] utilities below). */
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-    filter: blur(5px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-    filter: blur(0);
-  }
+  /* Overlays only — menus, dialogs, drawers. The rest of the system uses
+     borders for depth, never shadows. */
+  --shadow-overlay:
+    0 0 0 1px oklch(0 0 0 / 0.06), 0 8px 24px -12px oklch(0 0 0 / 0.16),
+    0 24px 48px -24px oklch(0 0 0 / 0.18);
+  --shadow-pop:
+    0 0 0 1px oklch(0 0 0 / 0.05), 0 4px 12px -6px oklch(0 0 0 / 0.12);
 }
 
 :root {
   --sans-stack:
-    var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
-    Arial, sans-serif;
-  --mono-stack: ui-monospace, "SF Mono", Menlo, Monaco, "Cascadia Mono", monospace;
+    var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Helvetica, Arial, sans-serif;
+  --mono-stack:
+    var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, Monaco,
+    "Cascadia Mono", monospace;
 
-  /* Surfaces — a cool-neutral paper; pure-white cards lift a half-step above it. */
-  --background: oklch(0.984 0.002 265);
+  /* Surfaces — a pure-white canvas; hairlines carve the structure. */
+  --background: oklch(1 0 0);
   --surface: oklch(1 0 0);
-  --surface-sunken: oklch(0.968 0.003 265);
-  --muted: oklch(0.957 0.004 265);
+  --surface-2: oklch(0.98 0 0);
+  --surface-inset: oklch(0.965 0 0);
+  --muted: oklch(0.955 0 0);
 
-  /* Text — a single cool-neutral ramp, near-black at the top for real contrast. */
-  --ink: oklch(0.21 0.006 265);
-  --foreground: oklch(0.32 0.006 265);
-  --muted-foreground: oklch(0.52 0.008 265);
-  --subtle-foreground: oklch(0.63 0.009 265);
+  /* Text — a single neutral ramp, true near-black at the top. */
+  --ink: oklch(0.18 0 0);
+  --foreground: oklch(0.32 0 0);
+  --muted-foreground: oklch(0.52 0 0);
+  --subtle-foreground: oklch(0.64 0 0);
 
-  /* Hairlines — the primary structural device. */
-  --hairline: oklch(0.923 0.004 265);
-  --border: oklch(0.9 0.005 265);
+  /* Hairlines — the primary structural device of the whole system. */
+  --hairline: oklch(0.922 0 0);
+  --border: oklch(0.87 0 0);
+  --border-strong: oklch(0.78 0 0);
 
-  /* Accent — one refined blue, matching the button. The system's only hue. */
-  --primary: oklch(0.585 0.19 266);
-  --primary-foreground: oklch(0.99 0.01 250);
-  --brand: oklch(0.585 0.19 266);
-  --brand-ink: oklch(0.515 0.18 266);
+  /* The one colour. Lime is light, so its foreground is ink. */
+  --accent: oklch(0.85 0.19 130);
+  --accent-hover: oklch(0.82 0.19 130);
+  --accent-foreground: oklch(0.2 0 0);
+  --accent-muted: oklch(0.95 0.06 130);
+
+  /* Primary collapses to ink (used by dark controls); ring is the lime accent. */
+  --primary: oklch(0.18 0 0);
+  --primary-foreground: oklch(0.99 0 0);
   --danger: oklch(0.55 0.19 28);
-  --ring: oklch(0.585 0.19 266);
+  --danger-foreground: oklch(0.99 0 0);
+  --ring: oklch(0.85 0.19 130);
 
-  /* Button face gradients — unchanged. */
-  --gradient-button: linear-gradient(180deg, oklch(0.64 0.17 264), oklch(0.555 0.2 268));
-  --gradient-button-hover: linear-gradient(180deg, oklch(0.66 0.17 264), oklch(0.575 0.2 268));
+  --ease-spring: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-hairline outline-ring/50;
   }
   html {
     @apply font-sans;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    font-feature-settings: "cv11", "ss01";
+    font-synthesis: none;
   }
   body {
     @apply bg-background text-foreground;
@@ -151,19 +111,21 @@
   h2,
   h3,
   h4 {
+    @apply text-ink;
     text-wrap: balance;
+    letter-spacing: -0.02em;
   }
   p {
     text-wrap: pretty;
   }
   ::selection {
-    background: oklch(0.72 0.14 266 / 0.22);
+    background: var(--accent);
+    color: var(--accent-foreground);
   }
   /**
    * Chrome paints autofilled fields its own pale blue, overriding our fill for
    * returning users. Repaint with an inset fill; the focus-visible border still
-   * carries the focus indicator. Kept in its own rule — grouping with the
-   * standard `:autofill` selector drops the whole list.
+   * carries the focus indicator.
    */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
@@ -185,28 +147,62 @@
 }
 
 @layer utilities {
-  /* Staggered enter: mark a container [data-rise-group] and children [data-rise];
-     each child rises with an increasing delay. Purely decorative — content is
-     visible without JS and collapses under reduced-motion. */
+  /**
+   * Collapsed-hairline grid. Cells sit inside a container clipped by a single
+   * outer border; each cell pulls its top/left edge under its neighbour
+   * (-mt-px / -ml-px) so shared edges render as one crisp 1px hairline.
+   */
+  .grid-frame {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+  }
+  .grid-cell {
+    border-top: 1px solid var(--hairline);
+    border-left: 1px solid var(--hairline);
+    margin-top: -1px;
+    margin-left: -1px;
+  }
+
+  /* Faint background graph-paper, used behind hero / editorial bands. */
+  .grid-lines {
+    background-image:
+      linear-gradient(to right, var(--hairline) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--hairline) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+
+  /* One-shot staggered enter for the static landing (CSS-only, no motion lib). */
   [data-rise] {
-    animation: var(--animate-rise);
+    animation: rise 0.6s cubic-bezier(0.2, 0, 0, 1) both;
   }
   [data-rise-group] > [data-rise]:nth-child(1) {
     animation-delay: 0ms;
   }
   [data-rise-group] > [data-rise]:nth-child(2) {
-    animation-delay: 80ms;
+    animation-delay: 70ms;
   }
   [data-rise-group] > [data-rise]:nth-child(3) {
-    animation-delay: 160ms;
+    animation-delay: 140ms;
   }
   [data-rise-group] > [data-rise]:nth-child(4) {
-    animation-delay: 240ms;
+    animation-delay: 210ms;
   }
   [data-rise-group] > [data-rise]:nth-child(5) {
-    animation-delay: 320ms;
+    animation-delay: 280ms;
   }
   [data-rise-group] > [data-rise]:nth-child(6) {
-    animation-delay: 400ms;
+    animation-delay: 350ms;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }

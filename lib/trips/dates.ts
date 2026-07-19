@@ -6,11 +6,12 @@
 
 export type Availability = "yes" | "maybe" | "no";
 
-/** "available" carries the blue accent; maybe/no stay quiet warm gray. */
+/** Availability reads as ink intensity: "yes" is near-black, fading to a light
+ *  gray for "no". No colour — the poll ranks by weight, not hue. */
 export const AVAILABILITY_COLOR: Readonly<Record<Availability, string>> = {
-  yes: "oklch(0.585 0.19 266)",
-  maybe: "oklch(0.74 0.015 80)",
-  no: "oklch(0.83 0.01 80)",
+  yes: "oklch(0.22 0 0)",
+  maybe: "oklch(0.62 0 0)",
+  no: "oklch(0.83 0 0)",
 };
 
 export interface DateOptionCounts {

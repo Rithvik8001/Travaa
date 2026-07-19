@@ -20,7 +20,7 @@ export function Wordmark({
       aria-label="Travaa home"
       className={cn("flex items-center gap-2.25", className)}
     >
-      <Logo className={cn("text-brand size-5.75", markClassName)} />
+      <Logo className={cn("text-ink size-6", markClassName)} />
       {showLabel ? (
         <span
           className={cn(

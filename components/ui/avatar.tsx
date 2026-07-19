@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
-/** Cool ink that reads on every tint in the crew palette. */
-const AVATAR_INK = "oklch(0.35 0.02 277)";
+/** Near-black ink that reads on every shade in the crew palette. */
+const AVATAR_INK = "oklch(0.24 0 0)";
 
 interface AvatarProps {
   readonly initial: string;
@@ -14,6 +14,7 @@ interface AvatarProps {
   readonly className?: string;
 }
 
+/** A squircle identity chip with a mono initial and a hairline border. */
 export function Avatar({
   initial,
   color,
@@ -25,7 +26,7 @@ export function Avatar({
     <span
       aria-hidden
       className={cn(
-        "relative flex shrink-0 items-center justify-center rounded-full font-semibold shadow-[inset_0_0_0_1px_oklch(0_0_0/0.06)]",
+        "border-hairline relative flex shrink-0 items-center justify-center rounded-[6px] border font-mono font-medium",
         dimmed && "opacity-40",
         className,
       )}
@@ -34,7 +35,7 @@ export function Avatar({
       {initial}
       {status ? (
         <span
-          className="absolute -right-px -bottom-px size-2.75 rounded-full border-2 border-white"
+          className="border-background absolute -right-px -bottom-px size-2.75 rounded-[2px] border-2"
           style={{ background: status }}
         />
       ) : null}

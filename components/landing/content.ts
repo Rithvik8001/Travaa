@@ -24,38 +24,10 @@ export interface Step {
 
 export interface Feature {
   readonly n: string;
+  /** Mono kicker shown above the title. */
+  readonly label: string;
   readonly title: string;
   readonly desc: string;
-}
-
-export const FEATURES: readonly Feature[] = [
-  {
-    n: "01",
-    title: "Find the weekend that works",
-    desc: "Everyone taps their availability once. Travaa points straight at the dates the most people can make — then locks them the moment you're ready.",
-  },
-  {
-    n: "02",
-    title: "Decide together, out loud",
-    desc: "Drop in stays, restaurants, and plans. The group votes and talks it through right there. Winners become itinerary items — no copy-pasting from six threads.",
-  },
-  {
-    n: "03",
-    title: "Build the day-by-day",
-    desc: "A shared itinerary the whole crew can shape. Confirmations and notes live next to the plan, not buried in an inbox.",
-  },
-  {
-    n: "04",
-    title: "Split the bill, stay friends",
-    desc: "Log what everyone paid, split it your way, and Travaa nets it down to the fewest possible transfers.",
-  },
-];
-
-export interface Detail {
-  readonly title: string;
-  readonly desc: string;
-  /** CSS color for the square bullet mark. */
-  readonly mark: string;
 }
 
 export interface Quote {
@@ -71,63 +43,70 @@ export interface FooterColumn {
   readonly links: readonly string[];
 }
 
+/** The signature bordered feature grid — six cells, mono-labelled. */
+export const FEATURES: readonly Feature[] = [
+  {
+    n: "01",
+    label: "Dates",
+    title: "One poll, one date",
+    desc: "Everyone taps their availability once. The window most people can make rises to the top — lock it and it's the trip's date.",
+  },
+  {
+    n: "02",
+    label: "Ideas",
+    title: "Decide out loud",
+    desc: "Stays, spots, and plans go on the board. The crew upvotes and talks it through, right where the decision happens.",
+  },
+  {
+    n: "03",
+    label: "Itinerary",
+    title: "The day-by-day",
+    desc: "Winning ideas become itinerary items. One shared plan the whole group can shape — not six screenshots.",
+  },
+  {
+    n: "04",
+    label: "Packing",
+    title: "Nothing left behind",
+    desc: "Shared and private lists, items assigned to whoever's carrying them. Checked off as you pack.",
+  },
+  {
+    n: "05",
+    label: "Invites",
+    title: "A link is enough",
+    desc: "Share one link or a short code. People vote and weigh in before they ever make an account.",
+  },
+  {
+    n: "06",
+    label: "Expenses",
+    title: "Split, stay friends",
+    desc: "Log what everyone paid and Travaa nets it down to the fewest transfers. Soon on the grid.",
+  },
+];
+
 export const CREW: readonly CrewMember[] = [
-  { initial: "M", avatar: "oklch(0.88 0.04 266)", availability: "yes" },
-  { initial: "D", avatar: "oklch(0.88 0.035 240)", availability: "yes" },
-  { initial: "P", avatar: "oklch(0.88 0.03 205)", availability: "yes" },
-  { initial: "S", avatar: "oklch(0.88 0.035 300)", availability: "yes" },
-  { initial: "N", avatar: "oklch(0.88 0.03 160)", availability: "maybe" },
-  { initial: "L", avatar: "oklch(0.88 0.035 255)", availability: "no" },
+  { initial: "M", avatar: "oklch(0.9 0 0)", availability: "yes" },
+  { initial: "D", avatar: "oklch(0.86 0 0)", availability: "yes" },
+  { initial: "P", avatar: "oklch(0.82 0 0)", availability: "yes" },
+  { initial: "S", avatar: "oklch(0.78 0 0)", availability: "yes" },
+  { initial: "N", avatar: "oklch(0.74 0 0)", availability: "maybe" },
+  { initial: "L", avatar: "oklch(0.7 0 0)", availability: "no" },
 ];
 
 export const STEPS: readonly Step[] = [
   {
     n: "1",
-    title: "Create a trip",
-    desc: "Name it, set a rough window, add a cover. About thirty seconds.",
+    title: "Open a trip",
+    desc: "Name it, sketch a rough window. Thirty seconds and you have a shared board.",
   },
   {
     n: "2",
-    title: "Invite the crew",
-    desc: "One link or a four-letter code. People vote before they even make an account.",
+    title: "Drop the link",
+    desc: "One link or a short code. The crew votes on dates before they even sign up.",
   },
   {
     n: "3",
-    title: "Decide, then go",
-    desc: "Lock dates, build the plan, split the costs. Travaa keeps everyone in sync as things change.",
-  },
-];
-
-export const DETAILS: readonly Detail[] = [
-  {
-    mark: "oklch(0.585 0.16 266)",
-    title: "Packing lists",
-    desc: "Shared and private, with items assigned to whoever's carrying them.",
-  },
-  {
-    mark: "oklch(0.6 0.13 240)",
-    title: "Roles & permissions",
-    desc: "Organizers, co-organizers, members — everyone sees the right thing.",
-  },
-  {
-    mark: "oklch(0.62 0.11 205)",
-    title: "Receipts & files",
-    desc: "Attach confirmations and receipts right where they belong.",
-  },
-  {
-    mark: "oklch(0.6 0.14 300)",
-    title: "Notifications",
-    desc: "Nudges for votes and new expenses. Never a feed to scroll.",
-  },
-  {
-    mark: "oklch(0.62 0.11 160)",
-    title: "Real-time sync",
-    desc: "Changes appear instantly for the whole group, optimistically.",
-  },
-  {
-    mark: "oklch(0.585 0.15 255)",
-    title: "Deep-link invites",
-    desc: "Tap a link, land straight inside the trip. No hunting for codes.",
+    title: "Lock it and go",
+    desc: "Set the date, build the plan, split the costs. Everyone stays in sync as things move.",
   },
 ];
 
@@ -137,18 +116,21 @@ export const QUOTES: readonly Quote[] = [
     name: "Maya Chen",
     sub: "Planned 3 trips on Travaa",
     initial: "M",
-    avatar: "oklch(0.88 0.04 266)",
+    avatar: "oklch(0.88 0 0)",
   },
   {
     text: "The dates poll alone ended a fight our group chat had been having since February.",
     name: "Lena Brandt",
     sub: "Planned 4 trips on Travaa",
     initial: "L",
-    avatar: "oklch(0.88 0.035 255)",
+    avatar: "oklch(0.78 0 0)",
   },
 ];
 
 export const FOOTER_COLUMNS: readonly FooterColumn[] = [
-  { head: "Product", links: ["Features", "How it works", "Pricing", "Changelog"] },
-  { head: "Company", links: ["About Travaa"] },
+  {
+    head: "Product",
+    links: ["Features", "How it works", "Pricing", "Changelog"],
+  },
+  { head: "Company", links: ["About", "Contact"] },
 ];

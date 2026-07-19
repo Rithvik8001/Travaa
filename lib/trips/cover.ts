@@ -1,16 +1,17 @@
 /**
- * Trip cover gradients — deep, saturated cool blends (indigo → teal → violet)
- * in the accent family, deterministic per trip id (same hash-an-id approach as
- * lib/avatar-color.ts) so a trip keeps its look across sessions. White text and
- * avatars read cleanly on top. A stand-in until real cover images (Cloudinary) land.
+ * Trip cover swatches — deep charcoal fills, deterministic per trip id (same
+ * hash-an-id approach as lib/avatar-color.ts) so a trip keeps its look across
+ * sessions. Used small as monogram chips and join-card headers in the Grid
+ * system. Variation comes from shade alone — no colour accent. A stand-in until
+ * real cover images (Cloudinary) land.
  */
 const TRIP_COVERS = [
-  "linear-gradient(145deg, oklch(0.6 0.17 277), oklch(0.48 0.17 285))",
-  "linear-gradient(145deg, oklch(0.62 0.13 230), oklch(0.5 0.15 260))",
-  "linear-gradient(145deg, oklch(0.64 0.12 195), oklch(0.52 0.14 220))",
-  "linear-gradient(145deg, oklch(0.62 0.15 320), oklch(0.5 0.16 290))",
-  "linear-gradient(145deg, oklch(0.64 0.13 160), oklch(0.52 0.13 195))",
-  "linear-gradient(145deg, oklch(0.58 0.16 260), oklch(0.46 0.16 280))",
+  "oklch(0.28 0 0)",
+  "oklch(0.24 0 0)",
+  "oklch(0.32 0 0)",
+  "oklch(0.22 0 0)",
+  "oklch(0.30 0 0)",
+  "oklch(0.26 0 0)",
 ] as const;
 
 export function tripCover(seed: string): string {

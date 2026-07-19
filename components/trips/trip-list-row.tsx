@@ -1,42 +1,57 @@
 import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 import type { Trip } from "@/lib/db/trips";
 import { tripCover } from "@/lib/trips/cover";
 import { formatWindow, relativeToNow } from "@/lib/trips/format";
+import { cn } from "@/lib/utils";
 
-/** One dashboard trip card. Server-rendered — no client JS. */
-export function TripListRow({ trip }: { readonly trip: Trip }) {
+/** One dashboard trip cell — lives inside the collapsed-hairline grid. */
+export function TripListRow({
+  trip,
+  className,
+}: {
+  readonly trip: Trip;
+  readonly className?: string;
+}) {
   const meta = [formatWindow(trip.startDate, trip.endDate), trip.destination]
     .filter(Boolean)
     .join(" · ");
   const relative = relativeToNow(trip.startDate);
+  const monogram = trip.name.trim().slice(0, 2).toUpperCase() || "??";
 
   return (
     <Link
       href={`/trips/${trip.id}`}
-      className="group bg-surface shadow-card hover:shadow-border-hover flex flex-col overflow-hidden rounded-[16px] transition-[box-shadow,transform] duration-200 active:scale-[0.99]"
+      className={cn(
+        "group hover:bg-surface-2 relative flex h-full min-h-[136px] flex-col justify-between gap-5 p-5 transition-colors duration-150",
+        className,
+      )}
     >
-      <span
-        aria-hidden
-        className="relative h-[104px] w-full shadow-[inset_0_0_0_1px_oklch(0_0_0/0.06)]"
-        style={{ background: tripCover(trip.id) }}
-      >
-        <span className="text-brand-ink absolute top-3 right-3 rounded-full bg-white/90 px-2.5 py-[3.5px] text-[10px] font-semibold tracking-[0.04em] uppercase backdrop-blur-sm">
-          Planning
+      <div className="flex items-start justify-between gap-3">
+        <span
+          aria-hidden
+          className="border-hairline flex size-9 shrink-0 items-center justify-center rounded-[6px] border font-mono text-[12px] font-medium text-white"
+          style={{ background: tripCover(trip.id) }}
+        >
+          {monogram}
         </span>
-      </span>
-      <span className="flex min-w-0 flex-1 flex-col gap-1 p-4">
-        <span className="text-ink truncate text-[16px] font-semibold tracking-[-0.015em]">
+        <Badge tone="soft" size="sm">
+          Planning
+        </Badge>
+      </div>
+      <div className="min-w-0">
+        <span className="text-ink block truncate text-[15px] font-semibold tracking-[-0.01em]">
           {trip.name}
         </span>
-        <span className="text-subtle-foreground truncate text-[13px]">
+        <span className="text-subtle-foreground mt-1 block truncate font-mono text-[12px]">
           {meta || "No dates yet"}
         </span>
         {relative ? (
-          <span className="text-brand-ink mt-1.5 text-[12.5px] font-medium">
+          <span className="text-muted-foreground mt-2 block text-[12.5px]">
             {relative}
           </span>
         ) : null}
-      </span>
+      </div>
     </Link>
   );
 }

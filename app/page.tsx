@@ -1,6 +1,5 @@
 import { Bento } from "@/components/landing/bento/bento";
 import { ClosingCta } from "@/components/landing/closing-cta/closing-cta";
-import { DetailsGrid } from "@/components/landing/details-grid/details-grid";
 import { FeatureIndex } from "@/components/landing/feature-index/feature-index";
 import { Hero } from "@/components/landing/hero/hero";
 import { HowItWorks } from "@/components/landing/how-it-works/how-it-works";
@@ -17,7 +16,6 @@ export default function LandingPage() {
         <Bento />
         <FeatureIndex />
         <HowItWorks />
-        <DetailsGrid />
         <Testimonials />
         <ClosingCta />
       </main>

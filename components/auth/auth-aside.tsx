@@ -1,95 +1,92 @@
 import { Avatar } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { AVAILABILITY_COLOR } from "@/lib/trips/dates";
 
-/** The crew shown on the auth aside's floating poll card. */
+/** The crew shown on the auth aside's poll card. */
 const CREW = [
-  { initial: "M", color: "oklch(0.88 0.035 277)", availability: "yes" },
-  { initial: "D", color: "oklch(0.88 0.035 230)", availability: "yes" },
-  { initial: "P", color: "oklch(0.88 0.035 195)", availability: "yes" },
-  { initial: "S", color: "oklch(0.88 0.035 320)", availability: "yes" },
-  { initial: "N", color: "oklch(0.88 0.035 155)", availability: "maybe" },
-  { initial: "L", color: "oklch(0.88 0.03 255)", availability: "no" },
+  { initial: "M", color: "oklch(0.9 0 0)", availability: "yes" },
+  { initial: "D", color: "oklch(0.86 0 0)", availability: "yes" },
+  { initial: "P", color: "oklch(0.82 0 0)", availability: "yes" },
+  { initial: "S", color: "oklch(0.78 0 0)", availability: "yes" },
+  { initial: "N", color: "oklch(0.74 0 0)", availability: "maybe" },
+  { initial: "L", color: "oklch(0.7 0 0)", availability: "no" },
 ] as const;
 
 /**
- * The branded half of the split-screen auth: a deep cool identity gradient with a
- * floating live poll fragment and a single crew quote. Decorative — hidden below
- * the two-column breakpoint, so the form stands alone on small screens.
+ * The branded half of the split-screen auth: a bordered panel on a faint
+ * graph-paper field with the real dates-poll UI and a single crew quote.
+ * Decorative — hidden below the two-column breakpoint.
  */
 export function AuthAside() {
   return (
     <aside
       aria-hidden
-      className="relative hidden overflow-hidden min-[900px]:block"
-      style={{
-        background:
-          "linear-gradient(158deg, oklch(0.52 0.17 283), oklch(0.34 0.14 279))",
-      }}
+      className="border-hairline bg-surface-2 relative hidden overflow-hidden border-l min-[900px]:block"
     >
-      <div
-        className="pointer-events-none absolute -top-28 -right-20 h-[460px] w-[460px] rounded-full opacity-45 blur-[130px]"
-        style={{
-          background:
-            "radial-gradient(closest-side, oklch(0.82 0.13 305 / 0.85), transparent)",
-        }}
-      />
+      <div className="grid-lines pointer-events-none absolute inset-0 opacity-60" />
 
       <div className="relative flex h-full flex-col justify-between p-12 min-[1200px]:p-16">
-        <span className="text-[12px] font-semibold tracking-[0.14em] text-white/60 uppercase">
+        <span className="text-subtle-foreground font-mono text-[11px] tracking-[0.14em] uppercase">
           Plan together · decide faster
         </span>
 
-        <div className="w-full max-w-[340px] rounded-[20px] bg-white/95 p-5 shadow-[0_40px_80px_-40px_oklch(0.2_0.12_282/0.8)] backdrop-blur-sm">
-          <div className="mb-4 flex items-start justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-ink text-[16px] font-semibold tracking-[-0.01em]">
-                  Oct 12–16
-                </span>
-                <span className="bg-brand/12 text-brand-ink rounded-full px-2 py-[2px] text-[10px] font-semibold tracking-[0.03em] uppercase">
-                  Best fit
-                </span>
-              </div>
-              <div className="text-subtle-foreground mt-[3px] text-[12.5px]">
-                Thu–Mon · 4 nights
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-ink text-[17px] font-semibold tabular-nums">
-                5/6
-              </div>
-              <div className="text-subtle-foreground text-[11px]">available</div>
-            </div>
+        <div className="bg-surface border-border w-full max-w-[340px] rounded-[8px] border">
+          <div className="border-hairline text-subtle-foreground flex items-center justify-between border-b px-4 py-2.5 font-mono text-[10px] tracking-[0.08em] uppercase">
+            <span>travaa / lisbon-oct</span>
+            <span>6</span>
           </div>
-          <div className="flex gap-[7px]">
-            {CREW.map((member) => (
-              <Avatar
-                key={member.initial}
-                initial={member.initial}
-                color={member.color}
-                status={AVAILABILITY_COLOR[member.availability]}
-                dimmed={member.availability === "no"}
-                className="size-[30px] text-xs"
-              />
-            ))}
+          <div className="p-4">
+            <div className="mb-4 flex items-start justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-ink text-[16px] font-semibold tracking-[-0.01em]">
+                    Oct 12–16
+                  </span>
+                  <Badge tone="accent" size="sm">
+                    Best fit
+                  </Badge>
+                </div>
+                <div className="text-subtle-foreground mt-[3px] font-mono text-[11px]">
+                  Thu–Mon · 4 nights
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-ink text-[17px] font-semibold tabular-nums">
+                  5/6
+                </div>
+                <div className="text-subtle-foreground font-mono text-[10px] tracking-[0.06em] uppercase">
+                  available
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-[7px]">
+              {CREW.map((member) => (
+                <Avatar
+                  key={member.initial}
+                  initial={member.initial}
+                  color={member.color}
+                  status={AVAILABILITY_COLOR[member.availability]}
+                  dimmed={member.availability === "no"}
+                  className="size-[30px] text-xs"
+                />
+              ))}
+            </div>
           </div>
         </div>
 
         <figure>
-          <blockquote className="max-w-[16ch] text-[30px] leading-[1.22] font-semibold tracking-[-0.03em] text-balance text-white">
+          <blockquote className="text-ink max-w-[16ch] text-[28px] leading-[1.2] font-semibold tracking-[-0.03em] text-balance">
             The trip actually happened this time.
           </blockquote>
           <figcaption className="mt-6 flex items-center gap-3">
             <Avatar
               initial="M"
-              color="oklch(0.88 0.04 266)"
+              color="oklch(0.88 0 0)"
               className="size-9 text-sm"
             />
             <div className="leading-tight">
-              <div className="text-[14px] font-semibold text-white">
-                Maya Chen
-              </div>
-              <div className="text-[13px] text-white/60">
+              <div className="text-ink text-[14px] font-medium">Maya Chen</div>
+              <div className="text-subtle-foreground font-mono text-[12px]">
                 Planned 3 trips on Travaa
               </div>
             </div>

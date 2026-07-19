@@ -24,7 +24,7 @@ export function Field({ label, error, children }: FieldProps) {
     <div className="flex flex-col gap-2">
       <label
         htmlFor={id}
-        className="text-foreground text-[13px] font-medium tracking-[-0.006em]"
+        className="text-muted-foreground font-mono text-[11px] font-medium tracking-[0.08em] uppercase"
       >
         {label}
       </label>

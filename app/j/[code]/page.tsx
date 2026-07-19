@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CtaLink } from "@/components/ui/cta-link";
@@ -43,24 +44,22 @@ export default async function JoinPage({
 
   return (
     <main className="flex flex-1 items-center justify-center p-6">
-      <div className="animate-pop w-full max-w-[400px]">
+      <div className="w-full max-w-[400px]">
         <Wordmark className="mb-7 justify-center" />
 
-        <Card className="shadow-dialog overflow-hidden">
+        <Card className="overflow-hidden">
           <div
-            className="relative h-[140px] shadow-[inset_0_0_0_1px_oklch(0_0_0/0.06)]"
+            className="border-hairline relative flex h-[120px] items-end border-b p-[18px]"
             style={{ background: tripCover(trip.id) }}
           >
-            <div className="absolute inset-0 flex items-end bg-gradient-to-b from-transparent to-black/20 p-[18px]">
-              <MemberStack members={members} max={5} />
-            </div>
+            <MemberStack members={members} max={5} />
           </div>
 
           <div className="px-6 pt-6 pb-6 text-center">
             {alreadyMember ? (
-              <p className="text-subtle-foreground mb-1.5 text-[13.5px]">
-                You&rsquo;re already in
-              </p>
+              <Badge tone="soft" size="sm" className="mb-3">
+                Already in
+              </Badge>
             ) : (
               <p className="text-subtle-foreground mb-1.5 text-[13.5px]">
                 <span className="text-foreground font-semibold">{ownerName}</span>{" "}
@@ -70,7 +69,7 @@ export default async function JoinPage({
             <h1 className="text-ink text-[21px] font-semibold tracking-[-0.02em]">
               {trip.name}
             </h1>
-            <p className="text-subtle-foreground mt-1 mb-[22px] text-[14px]">
+            <p className="text-subtle-foreground mt-1 mb-[22px] font-mono text-[12px]">
               {subtitle}
             </p>
 
@@ -112,7 +111,7 @@ export default async function JoinPage({
                   New to Travaa?{" "}
                   <Link
                     href={`/sign-up?redirect=/j/${code}`}
-                    className="text-brand-ink font-medium hover:underline"
+                    className="text-ink font-medium underline decoration-[oklch(0_0_0/0.25)] decoration-1 underline-offset-[3px] transition-colors hover:decoration-ink"
                   >
                     Create an account
                   </Link>

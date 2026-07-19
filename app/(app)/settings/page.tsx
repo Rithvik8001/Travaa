@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { ProfileForm } from "@/components/settings/profile-form";
 import { Avatar } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
+import { Eyebrow } from "@/components/ui/eyebrow";
 import { avatarColor } from "@/lib/avatar-color";
 import { requireSession } from "@/lib/session";
 
@@ -12,11 +13,12 @@ export default async function SettingsPage() {
   const username = user.displayUsername ?? user.username ?? "";
 
   return (
-    <main className="mx-auto w-full max-w-[880px] px-6 pt-16 pb-32">
-      <h1 className="text-ink text-[34px] leading-[1.05] font-semibold tracking-[-0.035em]">
+    <main className="mx-auto w-full max-w-[880px] px-6 py-10 min-[900px]:px-10 min-[900px]:py-14">
+      <Eyebrow>Settings</Eyebrow>
+      <h1 className="text-ink mt-3 text-[32px] leading-[1.05] font-semibold tracking-[-0.03em]">
         Profile
       </h1>
-      <p className="text-muted-foreground mt-2 text-[15px]">
+      <p className="text-muted-foreground mt-2 text-[14px]">
         How your crew sees you across every trip.
       </p>
 
@@ -33,7 +35,7 @@ export default async function SettingsPage() {
                 {user.name}
               </div>
               {username ? (
-                <div className="text-subtle-foreground truncate text-[13px]">
+                <div className="text-subtle-foreground truncate font-mono text-[12px]">
                   @{username}
                 </div>
               ) : null}

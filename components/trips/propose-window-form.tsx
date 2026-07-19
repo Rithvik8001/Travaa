@@ -33,7 +33,7 @@ export function ProposeWindowForm({ tripId }: { readonly tripId: string }) {
     <form onSubmit={submit} className="mt-4">
       <div className="flex flex-wrap items-end gap-3">
         <label className="flex-1 min-w-[130px]">
-          <span className="text-foreground mb-[6px] block text-[13px] font-medium tracking-[-0.01em]">
+          <span className="text-muted-foreground mb-[6px] block font-mono text-[11px] font-medium tracking-[0.08em] uppercase">
             Start
           </span>
           <Input
@@ -45,7 +45,7 @@ export function ProposeWindowForm({ tripId }: { readonly tripId: string }) {
           />
         </label>
         <label className="flex-1 min-w-[130px]">
-          <span className="text-foreground mb-[6px] block text-[13px] font-medium tracking-[-0.01em]">
+          <span className="text-muted-foreground mb-[6px] block font-mono text-[11px] font-medium tracking-[0.08em] uppercase">
             End
           </span>
           <Input

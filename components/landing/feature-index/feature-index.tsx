@@ -2,37 +2,37 @@ import { FEATURES } from "@/components/landing/content";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/eyebrow";
 
-/** An editorial, numbered index of what Travaa does — copy only, hairline-ruled. */
+/** The signature move — a collapsed-hairline grid of feature cells, mono-labelled. */
 export function FeatureIndex() {
   return (
-    <section id="features" className="border-hairline scroll-mt-[66px] border-t">
-      <Container className="py-[100px]">
-        <div className="mb-14 max-w-[640px]">
-          <Eyebrow className="mb-5">The whole job, handled</Eyebrow>
-          <h2 className="text-ink text-[32px] leading-[1.1] font-semibold tracking-[-0.035em] text-balance min-[560px]:text-[40px]">
-            Four decisions stand between a group chat and a gate. Travaa closes
-            each one.
+    <section id="features" className="border-hairline scroll-mt-14 border-b">
+      <Container className="py-24 min-[900px]:py-28">
+        <div className="mb-12 max-w-[640px]">
+          <Eyebrow className="mb-5">Everything on the board</Eyebrow>
+          <h2 className="text-ink text-[30px] leading-[1.1] font-semibold tracking-[-0.03em] text-balance min-[560px]:text-[40px]">
+            Six decisions stand between a group chat and a gate.
           </h2>
         </div>
 
-        <ol className="border-border border-t">
+        <div className="grid-frame grid grid-cols-1 min-[560px]:grid-cols-2 min-[900px]:grid-cols-3">
           {FEATURES.map((feature) => (
-            <li
+            <article
               key={feature.n}
-              className="border-hairline grid items-baseline gap-x-8 gap-y-2 border-b py-8 min-[900px]:grid-cols-[64px_minmax(0,0.85fr)_1.15fr]"
+              className="grid-cell flex flex-col gap-3 p-6 min-[900px]:p-8"
             >
-              <span className="text-subtle-foreground text-[14px] font-medium tabular-nums">
-                {feature.n}
-              </span>
-              <h3 className="text-ink text-[21px] leading-[1.2] font-semibold tracking-[-0.02em] text-balance">
+              <div className="text-subtle-foreground flex items-center justify-between font-mono text-[11px] tracking-[0.08em] uppercase">
+                <span>{feature.label}</span>
+                <span className="tabular-nums">{feature.n}</span>
+              </div>
+              <h3 className="text-ink mt-1 text-[19px] leading-[1.2] font-semibold tracking-[-0.02em]">
                 {feature.title}
               </h3>
-              <p className="text-muted-foreground max-w-[52ch] text-[16px] leading-[1.6] text-pretty">
+              <p className="text-muted-foreground text-[14.5px] leading-[1.6] text-pretty">
                 {feature.desc}
               </p>
-            </li>
+            </article>
           ))}
-        </ol>
+        </div>
       </Container>
     </section>
   );

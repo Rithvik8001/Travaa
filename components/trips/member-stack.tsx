@@ -2,7 +2,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { avatarColor } from "@/lib/avatar-color";
 import type { TripMemberView } from "@/lib/trips/queries";
 
-/** Overlapping crew avatars for the trip header (Travaa.dc.html). Owner first. */
+/** Overlapping crew avatars for the join card cover. Owner first. */
 export function MemberStack({
   members,
   max = 6,
@@ -24,7 +24,7 @@ export function MemberStack({
         />
       ))}
       {overflow > 0 ? (
-        <span className="ring-background bg-muted text-muted-foreground -ml-[9px] flex size-[34px] items-center justify-center rounded-full text-[12px] font-semibold ring-[2.5px]">
+        <span className="ring-background bg-muted text-muted-foreground border-hairline -ml-[9px] flex size-[34px] items-center justify-center rounded-[6px] border font-mono text-[12px] font-medium ring-[2.5px]">
           +{overflow}
         </span>
       ) : null}

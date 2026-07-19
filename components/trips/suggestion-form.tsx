@@ -33,7 +33,7 @@ export function SuggestionForm({ tripId }: { readonly tripId: string }) {
     <form onSubmit={submit} className="mt-4">
       <div className="flex flex-wrap items-end gap-3">
         <label className="min-w-[200px] flex-[2]">
-          <span className="text-foreground mb-[6px] block text-[13px] font-medium tracking-[-0.01em]">
+          <span className="text-muted-foreground mb-[6px] block font-mono text-[11px] font-medium tracking-[0.08em] uppercase">
             Idea
           </span>
           <Input
@@ -46,9 +46,11 @@ export function SuggestionForm({ tripId }: { readonly tripId: string }) {
           />
         </label>
         <label className="min-w-[160px] flex-1">
-          <span className="text-foreground mb-[6px] block text-[13px] font-medium tracking-[-0.01em]">
+          <span className="text-muted-foreground mb-[6px] block font-mono text-[11px] font-medium tracking-[0.08em] uppercase">
             Link{" "}
-            <span className="text-subtle-foreground font-normal">(optional)</span>
+            <span className="text-subtle-foreground normal-case tracking-normal">
+              (optional)
+            </span>
           </span>
           <Input
             name="url"

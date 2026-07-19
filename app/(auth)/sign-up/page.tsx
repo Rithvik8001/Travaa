@@ -29,7 +29,7 @@ export default async function SignUpPage({
         Already have an account?{" "}
         <Link
           href={`/sign-in${suffix}`}
-          className="text-brand-ink font-medium hover:underline"
+          className="text-ink font-medium underline decoration-[oklch(0_0_0/0.25)] decoration-1 underline-offset-[3px] transition-colors hover:decoration-ink"
         >
           Sign in
         </Link>

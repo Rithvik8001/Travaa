@@ -6,14 +6,10 @@ import { Wordmark } from "@/components/ui/wordmark";
 export function SiteFooter() {
   return (
     <footer className="border-hairline border-t">
-      <Container className="flex flex-wrap justify-between gap-12 py-[52px]">
+      <Container className="flex flex-wrap justify-between gap-12 py-14">
         <div className="max-w-[260px]">
-          <Wordmark
-            className="mb-3.5"
-            markClassName="size-[22px]"
-            labelClassName="text-[18px]"
-          />
-          <p className="text-sm leading-[1.55] text-muted-foreground">
+          <Wordmark className="mb-4" />
+          <p className="text-muted-foreground text-[13.5px] leading-[1.6]">
             Plan together, decide faster, travel better.
           </p>
         </div>
@@ -21,7 +17,7 @@ export function SiteFooter() {
         <div className="flex flex-wrap gap-16">
           {FOOTER_COLUMNS.map((column) => (
             <nav key={column.head} aria-label={column.head}>
-              <h2 className="text-subtle-foreground mb-3.5 text-[12.5px] font-semibold tracking-[0.05em] uppercase">
+              <h2 className="text-subtle-foreground mb-4 font-mono text-[11px] tracking-[0.1em] uppercase">
                 {column.head}
               </h2>
               <ul className="flex flex-col gap-2.5">
@@ -29,7 +25,7 @@ export function SiteFooter() {
                   <li key={link}>
                     <Link
                       href="#"
-                      className="hover:text-ink text-sm text-muted-foreground transition-colors"
+                      className="text-muted-foreground hover:text-ink text-[13.5px] transition-colors"
                     >
                       {link}
                     </Link>
@@ -42,15 +38,9 @@ export function SiteFooter() {
       </Container>
 
       <div className="border-hairline border-t">
-        <Container className="text-subtle-foreground flex flex-wrap justify-between gap-3 py-[22px] text-[13px]">
+        <Container className="text-subtle-foreground flex flex-wrap justify-between gap-3 py-6 font-mono text-[12px]">
           <span>© {new Date().getFullYear()} Travaa, Inc.</span>
-          <span>
-            Made with{" "}
-            <span role="img" aria-label="love">
-              ❤️
-            </span>{" "}
-            by Rithvik
-          </span>
+          <span>Made by Rithvik</span>
         </Container>
       </div>
     </footer>

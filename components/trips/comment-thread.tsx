@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
 import { avatarColor } from "@/lib/avatar-color";
 import { timeAgo } from "@/lib/trips/format";
 import type { CommentView } from "@/lib/trips/suggestions";
@@ -154,7 +155,7 @@ function Comment({
           <span className="text-ink text-[13.5px] font-medium">
             {comment.createdByName}
           </span>
-          <span className="text-subtle-foreground text-[12px]">
+          <span className="text-subtle-foreground font-mono text-[11px]">
             {timeAgo(comment.createdAt)}
           </span>
         </div>
@@ -207,18 +208,18 @@ function CommentInput({ placeholder, pending, onSubmit }: CommentInputProps) {
 
   return (
     <form onSubmit={submit} className="flex items-start gap-2">
-      <textarea
+      <Textarea
         value={body}
         onChange={(e) => setBody(e.target.value)}
         placeholder={placeholder}
         rows={1}
         maxLength={1000}
-        className="border-hairline bg-surface-sunken text-ink placeholder:text-subtle-foreground focus-visible:border-ring focus-visible:bg-surface focus-visible:ring-ring/20 min-h-[38px] flex-1 resize-y rounded-[10px] border px-3 py-[9px] text-[14px] transition-[border-color,background,box-shadow] duration-150 focus-visible:ring-[3px] focus-visible:outline-none"
+        className="min-h-[38px] flex-1 resize-y py-[9px]"
       />
       <button
         type="submit"
         disabled={pending || body.trim().length === 0}
-        className="text-brand-ink shrink-0 py-[9px] text-[13px] font-medium hover:underline disabled:opacity-55 disabled:hover:no-underline"
+        className="text-ink shrink-0 py-[9px] text-[13px] font-medium underline decoration-[oklch(0_0_0/0.2)] decoration-1 underline-offset-[3px] transition-colors hover:decoration-ink disabled:opacity-55 disabled:no-underline"
       >
         Post
       </button>
