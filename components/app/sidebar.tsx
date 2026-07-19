@@ -4,6 +4,7 @@ import {
   Add01Icon,
   Cancel01Icon,
   Home01Icon,
+  InboxIcon,
   Logout03Icon,
   Menu01Icon,
   Settings02Icon,
@@ -17,6 +18,7 @@ import { Wordmark } from "@/components/ui/wordmark";
 import { avatarColor } from "@/lib/avatar-color";
 import { signOut } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
+import { badgeLabel } from "@/lib/notifications/format";
 
 interface NavLink {
   readonly href: string;
@@ -41,6 +43,12 @@ const LINKS: readonly NavLink[] = [
     isActive: (p) => p.startsWith("/trips/new"),
   },
   {
+    href: "/notifications",
+    icon: InboxIcon,
+    label: "Inbox",
+    isActive: (p) => p.startsWith("/notifications"),
+  },
+  {
     href: "/settings",
     icon: Settings02Icon,
     label: "Settings",
@@ -58,10 +66,12 @@ function NavItem({
   link,
   active,
   onNavigate,
+  badge,
 }: {
   readonly link: NavLink;
   readonly active: boolean;
   readonly onNavigate?: () => void;
+  readonly badge?: number;
 }) {
   return (
     <Link
@@ -88,6 +98,14 @@ function NavItem({
         className="shrink-0"
       />
       {link.label}
+      {badge && badge > 0 ? (
+        <span
+          aria-label={`${badge} items need attention`}
+          className="border-hairline bg-surface ml-auto rounded-[4px] border px-1.5 py-0.5 font-mono text-[10px] tabular-nums"
+        >
+          {badgeLabel(badge)}
+        </span>
+      ) : null}
     </Link>
   );
 }
@@ -98,12 +116,14 @@ function SidebarBody({
   onSignOut,
   pending,
   onNavigate,
+  inboxCount,
 }: {
   readonly user: SidebarUser;
   readonly pathname: string;
   readonly onSignOut: () => void;
   readonly pending: boolean;
   readonly onNavigate?: () => void;
+  readonly inboxCount: number;
 }) {
   return (
     <div className="flex h-full flex-col">
@@ -121,6 +141,7 @@ function SidebarBody({
             link={link}
             active={link.isActive(pathname)}
             onNavigate={onNavigate}
+            badge={link.href === "/notifications" ? inboxCount : undefined}
           />
         ))}
       </nav>
@@ -166,7 +187,13 @@ function SidebarBody({
 
 /** The signed-in navigation chrome: a fixed left rail at desktop widths, and a
  *  slim top bar with a slide-in drawer below the 900px breakpoint. */
-export function Sidebar({ user }: { readonly user: SidebarUser }) {
+export function Sidebar({
+  user,
+  inboxCount,
+}: {
+  readonly user: SidebarUser;
+  readonly inboxCount: number;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -188,6 +215,7 @@ export function Sidebar({ user }: { readonly user: SidebarUser }) {
           pathname={pathname}
           onSignOut={handleSignOut}
           pending={pending}
+          inboxCount={inboxCount}
         />
       </aside>
 
@@ -227,6 +255,7 @@ export function Sidebar({ user }: { readonly user: SidebarUser }) {
               pathname={pathname}
               onSignOut={handleSignOut}
               pending={pending}
+              inboxCount={inboxCount}
               onNavigate={() => setOpen(false)}
             />
           </div>

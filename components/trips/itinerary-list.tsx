@@ -62,7 +62,7 @@ export function ItineraryList({
   }
 
   return (
-    <section>
+    <section id="itinerary" className="scroll-mt-24">
       <div className="mb-4">
         <Eyebrow className="mb-2">Itinerary</Eyebrow>
         <h2 className="text-ink text-[19px] font-semibold tracking-[-0.02em]">The day-by-day</h2>

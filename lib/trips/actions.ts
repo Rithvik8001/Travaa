@@ -27,7 +27,10 @@ import {
   tripItineraryItems,
   tripPackingLists,
   tripPackingItems,
+  notifications,
 } from "@/lib/db/trips";
+import { emitNotifications } from "@/lib/notifications/emit";
+import { notificationEventKey } from "@/lib/notifications/format";
 import { assertMember } from "@/lib/trips/queries";
 import { nights, type Availability } from "@/lib/trips/dates";
 import { isDateInWindow, moveItem } from "@/lib/trips/itinerary";
@@ -170,14 +173,29 @@ export async function joinTrip(code: string): Promise<void> {
 
   const trip = await db.query.trips.findFirst({
     where: eq(trips.inviteCode, code),
-    columns: { id: true },
+    columns: { id: true, ownerId: true },
   });
   if (!trip) redirect("/dashboard");
 
-  await db
-    .insert(tripMembers)
-    .values({ id: randomUUID(), tripId: trip.id, userId: user.id })
-    .onConflictDoNothing();
+  await db.transaction(async (tx) => {
+    const membershipId = randomUUID();
+    const [inserted] = await tx
+      .insert(tripMembers)
+      .values({ id: membershipId, tripId: trip.id, userId: user.id })
+      .onConflictDoNothing()
+      .returning({ id: tripMembers.id });
+    if (inserted) {
+      await emitNotifications(tx, [
+        {
+          recipientId: trip.ownerId,
+          actorId: user.id,
+          tripId: trip.id,
+          type: "member_joined",
+          eventKey: notificationEventKey("member_joined", [inserted.id]),
+        },
+      ]);
+    }
+  });
 
   revalidatePath("/dashboard");
   revalidatePath(`/trips/${trip.id}`);
@@ -227,6 +245,14 @@ export async function removeMember(tripId: string, userId: string): Promise<void
     await tx
       .delete(tripMembers)
       .where(and(eq(tripMembers.tripId, tripId), eq(tripMembers.userId, userId)));
+    await tx
+      .delete(notifications)
+      .where(
+        and(
+          eq(notifications.tripId, tripId),
+          eq(notifications.recipientId, userId),
+        ),
+      );
   });
 
   revalidatePath("/dashboard");
@@ -279,6 +305,14 @@ export async function leaveTrip(tripId: string): Promise<void> {
     await tx
       .delete(tripMembers)
       .where(and(eq(tripMembers.tripId, tripId), eq(tripMembers.userId, user.id)));
+    await tx
+      .delete(notifications)
+      .where(
+        and(
+          eq(notifications.tripId, tripId),
+          eq(notifications.recipientId, user.id),
+        ),
+      );
   });
 
   revalidatePath("/dashboard");
@@ -486,6 +520,27 @@ export async function lockDates(
         ),
       );
     await normalizeItineraryGroup(tx, tripId, null);
+    const recipients = await tx
+      .select({ userId: tripMembers.userId })
+      .from(tripMembers)
+      .where(eq(tripMembers.tripId, tripId));
+    const eventKey = notificationEventKey("dates_locked", [
+      tripId,
+      optionId,
+      option.startDate,
+      option.endDate,
+    ]);
+    await emitNotifications(
+      tx,
+      recipients.map((recipient) => ({
+        recipientId: recipient.userId,
+        actorId: user.id,
+        tripId,
+        type: "dates_locked" as const,
+        entityId: optionId,
+        eventKey,
+      })),
+    );
   });
 
   revalidatePath("/dashboard");
@@ -580,7 +635,7 @@ export async function toggleSuggestionVote(
 
   const suggestion = await db.query.tripSuggestions.findFirst({
     where: eq(tripSuggestions.id, suggestionId),
-    columns: { tripId: true },
+    columns: { tripId: true, createdBy: true },
   });
   if (!suggestion) return { error: "That idea no longer exists." };
 
@@ -624,7 +679,7 @@ export async function addComment(
 
   const suggestion = await db.query.tripSuggestions.findFirst({
     where: eq(tripSuggestions.id, suggestionId),
-    columns: { tripId: true },
+    columns: { tripId: true, createdBy: true },
   });
   if (!suggestion) return { error: "That idea no longer exists." };
 
@@ -636,22 +691,39 @@ export async function addComment(
   if (text.length > 1000)
     return { error: "Keep comments under 1000 characters." };
 
+  let recipientId = suggestion.createdBy;
+  let type: "idea_commented" | "comment_replied" = "idea_commented";
   if (parentId) {
     const parent = await db.query.tripSuggestionComments.findFirst({
       where: eq(tripSuggestionComments.id, parentId),
-      columns: { suggestionId: true, parentId: true },
+      columns: { suggestionId: true, parentId: true, userId: true },
     });
     if (!parent || parent.suggestionId !== suggestionId)
       return { error: "That comment no longer exists." };
     if (parent.parentId) return { error: "You can only reply once deep." };
+    recipientId = parent.userId;
+    type = "comment_replied";
   }
 
-  await db.insert(tripSuggestionComments).values({
-    id: randomUUID(),
-    suggestionId,
-    parentId: parentId ?? null,
-    userId: user.id,
-    body: text,
+  const commentId = randomUUID();
+  await db.transaction(async (tx) => {
+    await tx.insert(tripSuggestionComments).values({
+      id: commentId,
+      suggestionId,
+      parentId: parentId ?? null,
+      userId: user.id,
+      body: text,
+    });
+    await emitNotifications(tx, [
+      {
+        recipientId,
+        actorId: user.id,
+        tripId: suggestion.tripId,
+        type,
+        entityId: suggestionId,
+        eventKey: notificationEventKey(type, [commentId]),
+      },
+    ]);
   });
 
   revalidatePath(`/trips/${suggestion.tripId}`);
@@ -781,7 +853,7 @@ export async function convertSuggestion(
 
   await db.transaction(async (tx) => {
     await tx.execute(sql`select ${trips.id} from ${trips} where ${trips.id} = ${suggestion.tripId} for update`);
-    await tx
+    const [inserted] = await tx
       .insert(tripItineraryItems)
       .values({
         id: randomUUID(),
@@ -793,7 +865,20 @@ export async function convertSuggestion(
         sortOrder: await nextItinerarySort(tx, suggestion.tripId, null),
         sourceSuggestionId: suggestionId,
       })
-      .onConflictDoNothing();
+      .onConflictDoNothing()
+      .returning({ id: tripItineraryItems.id });
+    if (inserted) {
+      await emitNotifications(tx, [
+        {
+          recipientId: suggestion.createdBy,
+          actorId: user.id,
+          tripId: suggestion.tripId,
+          type: "idea_converted",
+          entityId: suggestionId,
+          eventKey: notificationEventKey("idea_converted", [suggestionId]),
+        },
+      ]);
+    }
   });
 
   revalidatePath(`/trips/${suggestion.tripId}`);

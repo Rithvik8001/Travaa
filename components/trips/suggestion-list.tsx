@@ -27,6 +27,7 @@ interface SuggestionListProps {
   readonly isOrganizer: boolean;
   /** Archived trip — the whole board is read-only. */
   readonly readOnly: boolean;
+  readonly initialExpandedSuggestionId?: string;
 }
 
 export function SuggestionList({
@@ -36,9 +37,12 @@ export function SuggestionList({
   currentUserId,
   isOrganizer,
   readOnly,
+  initialExpandedSuggestionId,
 }: SuggestionListProps) {
   const [error, setError] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
+  const [expanded, setExpanded] = useState<ReadonlySet<string>>(
+    new Set(initialExpandedSuggestionId ? [initialExpandedSuggestionId] : []),
+  );
   const [pending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -67,7 +71,7 @@ export function SuggestionList({
   }
 
   return (
-    <section>
+    <section id="ideas" className="scroll-mt-24">
       <div className="mb-4">
         <Eyebrow className="mb-2">Ideas</Eyebrow>
         <h2 className="text-ink text-[19px] font-semibold tracking-[-0.02em]">
@@ -99,7 +103,11 @@ export function SuggestionList({
               const isExpanded = expanded.has(suggestion.id);
 
               return (
-                <MotionItem key={suggestion.id}>
+                <MotionItem
+                  key={suggestion.id}
+                  id={`idea-${suggestion.id}`}
+                  className="scroll-mt-24"
+                >
                   <Card className="px-5 py-[18px]">
                 <div className="flex items-start gap-4">
                   <button

@@ -38,10 +38,13 @@ export async function generateMetadata({
 
 export default async function TripPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ tripId: string }>;
+  searchParams: Promise<{ idea?: string }>;
 }) {
   const { tripId } = await params;
+  const { idea } = await searchParams;
   const { user } = await requireSession();
 
   const trip = await getTripForUser(tripId, user.id);
@@ -204,6 +207,7 @@ export default async function TripPage({
             currentUserId={user.id}
             isOrganizer={isOwner}
             readOnly={isArchived}
+            initialExpandedSuggestionId={idea}
           />
 
           <ItineraryList

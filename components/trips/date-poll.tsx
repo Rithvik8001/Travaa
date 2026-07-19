@@ -81,7 +81,7 @@ export function DatePoll({
   }
 
   return (
-    <section>
+    <section id="dates" className="scroll-mt-24">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <Eyebrow className="mb-2">Dates</Eyebrow>

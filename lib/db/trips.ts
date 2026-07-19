@@ -79,6 +79,13 @@ export const packingVisibility = pgEnum("packing_visibility", [
   "shared",
   "private",
 ]);
+export const notificationType = pgEnum("notification_type", [
+  "member_joined",
+  "dates_locked",
+  "idea_commented",
+  "comment_replied",
+  "idea_converted",
+]);
 
 /**
  * Date poll — the candidate windows a crew is choosing between. Anyone in the
@@ -326,6 +333,46 @@ export const tripPackingItems = pgTable(
   ],
 );
 
+/** Recipient-specific, durable high-signal trip updates. */
+export const notifications = pgTable(
+  "notifications",
+  {
+    id: text("id").primaryKey(),
+    recipientId: text("recipient_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    actorId: text("actor_id").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    tripId: text("trip_id")
+      .notNull()
+      .references(() => trips.id, { onDelete: "cascade" }),
+    type: notificationType("type").notNull(),
+    entityId: text("entity_id"),
+    eventKey: text("event_key").notNull(),
+    readAt: timestamp("read_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("notifications_recipient_event_idx").on(
+      table.recipientId,
+      table.eventKey,
+    ),
+    index("notifications_recipient_created_idx").on(
+      table.recipientId,
+      table.createdAt,
+    ),
+    index("notifications_recipient_read_idx").on(
+      table.recipientId,
+      table.readAt,
+    ),
+    index("notifications_trip_recipient_idx").on(
+      table.tripId,
+      table.recipientId,
+    ),
+  ],
+);
+
 export const tripsRelations = relations(trips, ({ one, many }) => ({
   owner: one(user, {
     fields: [trips.ownerId],
@@ -336,6 +383,24 @@ export const tripsRelations = relations(trips, ({ one, many }) => ({
   suggestions: many(tripSuggestions),
   itineraryItems: many(tripItineraryItems),
   packingLists: many(tripPackingLists),
+  notifications: many(notifications),
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  trip: one(trips, {
+    fields: [notifications.tripId],
+    references: [trips.id],
+  }),
+  recipient: one(user, {
+    fields: [notifications.recipientId],
+    references: [user.id],
+    relationName: "notificationRecipient",
+  }),
+  actor: one(user, {
+    fields: [notifications.actorId],
+    references: [user.id],
+    relationName: "notificationActor",
+  }),
 }));
 
 export const tripPackingListsRelations = relations(
@@ -493,3 +558,5 @@ export type TripSuggestionComment = typeof tripSuggestionComments.$inferSelect;
 export type TripItineraryItem = typeof tripItineraryItems.$inferSelect;
 export type TripPackingList = typeof tripPackingLists.$inferSelect;
 export type TripPackingItem = typeof tripPackingItems.$inferSelect;
+export type Notification = typeof notifications.$inferSelect;
+export type NotificationType = (typeof notificationType.enumValues)[number];

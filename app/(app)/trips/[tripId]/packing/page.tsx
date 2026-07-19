@@ -47,7 +47,7 @@ export default async function PackingPage({ params }: { params: Promise<{ tripId
         </div>
       </div>
 
-      <main className="mx-auto w-full max-w-[920px] px-6 py-10 min-[900px]:px-10">
+      <main id="packing-lists" className="mx-auto w-full max-w-[920px] scroll-mt-24 px-6 py-10 min-[900px]:px-10">
         <div className="mb-9 flex flex-wrap items-end justify-between gap-4">
           <div>
             <Eyebrow className="mb-3">Packing</Eyebrow>
