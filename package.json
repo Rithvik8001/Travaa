@@ -8,10 +8,16 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "bun test lib",
+    "test:integration": "bun --conditions=react-server test --max-concurrency 1 --preload ./tests/integration/setup.ts ./tests/integration",
+    "test:all": "bun run test && bun run test:integration",
     "auth:generate": "better-auth generate --output lib/db/schema.ts --config lib/auth.ts",
     "db:generate": "drizzle-kit generate",
+    "db:check": "drizzle-kit check",
     "db:migrate": "drizzle-kit migrate",
-    "db:push": "drizzle-kit push",
+    "db:test:migrate": "drizzle-kit migrate --config drizzle.test.config.ts",
+    "db:baseline:verify": "bun scripts/baseline.ts verify",
+    "db:baseline:adopt": "bun scripts/baseline.ts adopt",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
@@ -33,6 +39,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/bun": "^1.3.14",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

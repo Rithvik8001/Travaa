@@ -6,7 +6,6 @@ import {
   asc,
   eq,
   gt,
-  inArray,
   isNull,
   lt,
   max,
@@ -27,14 +26,15 @@ import {
   tripItineraryItems,
   tripPackingLists,
   tripPackingItems,
-  notifications,
 } from "@/lib/db/trips";
 import { emitNotifications } from "@/lib/notifications/emit";
 import { notificationEventKey } from "@/lib/notifications/format";
 import { assertMember } from "@/lib/trips/queries";
 import { nights, type Availability } from "@/lib/trips/dates";
-import { isDateInWindow, moveItem } from "@/lib/trips/itinerary";
+import { isDateInWindow } from "@/lib/trips/itinerary";
 import { requireSession } from "@/lib/session";
+import { leaveTripAs, removeMemberAs } from "@/lib/trips/membership-mutations";
+import { itineraryItemAccess, moveItineraryItemAs } from "@/lib/trips/itinerary-mutations";
 
 /** Raw form values; dates arrive as "" or "YYYY-MM-DD". */
 export interface TripInput {
@@ -205,55 +205,8 @@ export async function joinTrip(code: string): Promise<void> {
 /** Organizer removes a member. The organizer (owner) can never be removed. */
 export async function removeMember(tripId: string, userId: string): Promise<void> {
   const { user } = await requireSession();
-
-  const trip = await ownedTrip(tripId, user.id);
-  if (!trip) redirect("/dashboard");
-  if (userId === trip.ownerId) return;
-
-  await db.transaction(async (tx) => {
-    const memberLists = tx
-      .select({ id: tripPackingLists.id })
-      .from(tripPackingLists)
-      .where(eq(tripPackingLists.tripId, tripId));
-    await tx
-      .update(tripPackingItems)
-      .set({ assignedTo: null })
-      .where(
-        and(
-          eq(tripPackingItems.assignedTo, userId),
-          inArray(tripPackingItems.listId, memberLists),
-        ),
-      );
-    await tx
-      .update(tripPackingItems)
-      .set({ completedBy: null })
-      .where(
-        and(
-          eq(tripPackingItems.completedBy, userId),
-          inArray(tripPackingItems.listId, memberLists),
-        ),
-      );
-    await tx
-      .delete(tripPackingLists)
-      .where(
-        and(
-          eq(tripPackingLists.tripId, tripId),
-          eq(tripPackingLists.createdBy, userId),
-          eq(tripPackingLists.visibility, "private"),
-        ),
-      );
-    await tx
-      .delete(tripMembers)
-      .where(and(eq(tripMembers.tripId, tripId), eq(tripMembers.userId, userId)));
-    await tx
-      .delete(notifications)
-      .where(
-        and(
-          eq(notifications.tripId, tripId),
-          eq(notifications.recipientId, userId),
-        ),
-      );
-  });
+  const result = await removeMemberAs(db, user.id, tripId, userId);
+  if ("error" in result && result.error === "Only the organizer can remove members.") redirect("/dashboard");
 
   revalidatePath("/dashboard");
   revalidatePath(`/trips/${tripId}`);
@@ -262,58 +215,11 @@ export async function removeMember(tripId: string, userId: string): Promise<void
 /** A member leaves a trip. The organizer can't leave — they delete the trip instead. */
 export async function leaveTrip(tripId: string): Promise<void> {
   const { user } = await requireSession();
-
-  const trip = await db.query.trips.findFirst({
-    where: eq(trips.id, tripId),
-    columns: { ownerId: true },
-  });
-  if (!trip) redirect("/dashboard");
-  if (trip.ownerId === user.id) redirect(`/trips/${tripId}`);
-
-  await db.transaction(async (tx) => {
-    const memberLists = tx
-      .select({ id: tripPackingLists.id })
-      .from(tripPackingLists)
-      .where(eq(tripPackingLists.tripId, tripId));
-    await tx
-      .update(tripPackingItems)
-      .set({ assignedTo: null })
-      .where(
-        and(
-          eq(tripPackingItems.assignedTo, user.id),
-          inArray(tripPackingItems.listId, memberLists),
-        ),
-      );
-    await tx
-      .update(tripPackingItems)
-      .set({ completedBy: null })
-      .where(
-        and(
-          eq(tripPackingItems.completedBy, user.id),
-          inArray(tripPackingItems.listId, memberLists),
-        ),
-      );
-    await tx
-      .delete(tripPackingLists)
-      .where(
-        and(
-          eq(tripPackingLists.tripId, tripId),
-          eq(tripPackingLists.createdBy, user.id),
-          eq(tripPackingLists.visibility, "private"),
-        ),
-      );
-    await tx
-      .delete(tripMembers)
-      .where(and(eq(tripMembers.tripId, tripId), eq(tripMembers.userId, user.id)));
-    await tx
-      .delete(notifications)
-      .where(
-        and(
-          eq(notifications.tripId, tripId),
-          eq(notifications.recipientId, user.id),
-        ),
-      );
-  });
+  const result = await leaveTripAs(db, user.id, tripId);
+  if ("error" in result) {
+    if (result.error === "The organizer can't leave their trip.") redirect(`/trips/${tripId}`);
+    redirect("/dashboard");
+  }
 
   revalidatePath("/dashboard");
   redirect("/dashboard");
@@ -808,27 +714,7 @@ async function normalizeItineraryGroup(
 }
 
 async function itineraryAccess(itemId: string, userId: string) {
-  const item = await db.query.tripItineraryItems.findFirst({
-    where: eq(tripItineraryItems.id, itemId),
-  });
-  if (!item) return { ok: false, error: "That itinerary item no longer exists." } as const;
-  if (!(await assertMember(item.tripId, userId)))
-    return { ok: false, error: "You're not a member of this trip." } as const;
-  const trip = await db.query.trips.findFirst({
-    where: eq(trips.id, item.tripId),
-    columns: {
-      ownerId: true,
-      archivedAt: true,
-      datesLockedAt: true,
-      startDate: true,
-      endDate: true,
-    },
-  });
-  if (!trip) return { ok: false, error: "Trip not found." } as const;
-  if (trip.archivedAt) return { ok: false, error: "This trip is archived." } as const;
-  if (item.createdBy !== userId && trip.ownerId !== userId)
-    return { ok: false, error: "You can't edit this itinerary item." } as const;
-  return { ok: true, item, trip } as const;
+  return itineraryItemAccess(db, userId, itemId);
 }
 
 /**
@@ -979,24 +865,9 @@ export async function moveItineraryItem(
   direction: "up" | "down",
 ): Promise<{ error: string } | void> {
   const { user } = await requireSession();
-  if (direction !== "up" && direction !== "down") return { error: "Unknown move." };
-  const access = await itineraryAccess(itemId, user.id);
-  if (!access.ok) return { error: access.error };
-
-  await db.transaction(async (tx) => {
-    await tx.execute(sql`select ${trips.id} from ${trips} where ${trips.id} = ${access.item.tripId} for update`);
-    const rows = await tx
-      .select({ id: tripItineraryItems.id })
-      .from(tripItineraryItems)
-      .where(itineraryGroupWhere(access.item.tripId, access.item.date))
-      .orderBy(asc(tripItineraryItems.sortOrder), asc(tripItineraryItems.createdAt), asc(tripItineraryItems.id));
-    const index = rows.findIndex((row) => row.id === itemId);
-    const moved = moveItem(rows, index, direction);
-    for (const [sortOrder, row] of moved.entries()) {
-      await tx.update(tripItineraryItems).set({ sortOrder }).where(eq(tripItineraryItems.id, row.id));
-    }
-  });
-  revalidatePath(`/trips/${access.item.tripId}`);
+  const result = await moveItineraryItemAs(db, user.id, itemId, direction);
+  if ("error" in result) return { error: result.error };
+  revalidatePath(`/trips/${result.tripId}`);
 }
 
 /** Remove an itinerary item. Author or organizer. */

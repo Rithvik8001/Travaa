@@ -13,6 +13,7 @@ import {
 } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/lib/db";
+import type { Database } from "@/lib/db/client";
 import {
   trips,
   tripMembers,
@@ -320,14 +321,27 @@ export async function getItinerary(
   tripId: string,
   userId: string,
 ): Promise<ItineraryItemView[]> {
-  if (!(await assertMember(tripId, userId))) return [];
-  const trip = await db.query.trips.findFirst({
+  return getItineraryForUser(db, tripId, userId);
+}
+
+/** Executor-aware form used by the integration suite; caller identity remains server-trusted. */
+export async function getItineraryForUser(
+  database: Database,
+  tripId: string,
+  userId: string,
+): Promise<ItineraryItemView[]> {
+  const membership = await database.query.tripMembers.findFirst({
+    where: and(eq(tripMembers.tripId, tripId), eq(tripMembers.userId, userId)),
+    columns: { id: true },
+  });
+  if (!membership) return [];
+  const trip = await database.query.trips.findFirst({
     where: eq(trips.id, tripId),
     columns: { ownerId: true },
   });
   if (!trip) return [];
 
-  const rows = await db
+  const rows = await database
     .select({
       id: tripItineraryItems.id,
       title: tripItineraryItems.title,

@@ -1,10 +1,10 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { notifications, type NotificationType } from "@/lib/db/trips";
-import { db } from "@/lib/db";
+import type { DatabaseTransaction } from "@/lib/db/client";
 import { shouldNotify } from "@/lib/notifications/format";
 
-export type DbTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0];
+export type DbTransaction = DatabaseTransaction;
 
 export interface NotificationEvent {
   readonly recipientId: string;
