@@ -1,14 +1,5 @@
 @import "tailwindcss";
 
-/**
- * Travaa design tokens — "Grid": a bordered, hairline-structured light system.
- * A pure-white canvas where hairlines (not shadows) do the structural work,
- * set in Geist Sans with Geist Mono carrying every label, number, and piece of
- * metadata. One colour — a sharp lime accent — is the only hue on the surface;
- * it appears on the primary action, the focus ring, the active nav marker, and
- * a single data highlight. Shadows are reserved for true overlays. Light-only.
- * Every token below is in use — add one only when a component needs it.
- */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
