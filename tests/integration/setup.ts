@@ -10,6 +10,7 @@ beforeAll(async () => {
   try {
     await client.query("select pg_advisory_lock($1)", [LOCK_ID]);
     await client.query("drop schema if exists public cascade");
+    await client.query("drop schema if exists drizzle cascade");
     await client.query("create schema public");
     await migrate(testDatabase.db, { migrationsFolder: "./drizzle" });
   } finally {
