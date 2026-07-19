@@ -1,6 +1,7 @@
 import { STEPS } from "@/components/landing/content";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { GridFrame } from "@/components/ui/grid-cell";
 
 /** Three steps as bordered columns with big mono numerals. */
 export function HowItWorks() {
@@ -14,7 +15,10 @@ export function HowItWorks() {
           </h2>
         </div>
 
-        <ol className="grid-frame grid grid-cols-1 min-[900px]:grid-cols-3">
+        <GridFrame
+          as="ol"
+          className="grid grid-cols-1 min-[900px]:grid-cols-3"
+        >
           {STEPS.map((step) => (
             <li key={step.n} className="grid-cell flex flex-col p-6 min-[900px]:p-8">
               <span
@@ -31,7 +35,7 @@ export function HowItWorks() {
               </p>
             </li>
           ))}
-        </ol>
+        </GridFrame>
       </Container>
     </section>
   );

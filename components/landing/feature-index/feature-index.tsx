@@ -1,6 +1,7 @@
 import { FEATURES } from "@/components/landing/content";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { GridFrame } from "@/components/ui/grid-cell";
 
 /** The signature move — a collapsed-hairline grid of feature cells, mono-labelled. */
 export function FeatureIndex() {
@@ -14,7 +15,7 @@ export function FeatureIndex() {
           </h2>
         </div>
 
-        <div className="grid-frame grid grid-cols-1 min-[560px]:grid-cols-2 min-[900px]:grid-cols-3">
+        <GridFrame className="grid grid-cols-1 min-[560px]:grid-cols-2 min-[900px]:grid-cols-3">
           {FEATURES.map((feature) => (
             <article
               key={feature.n}
@@ -32,7 +33,7 @@ export function FeatureIndex() {
               </p>
             </article>
           ))}
-        </div>
+        </GridFrame>
       </Container>
     </section>
   );

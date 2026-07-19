@@ -18,7 +18,7 @@ export function Wordmark({
     <Link
       href="/"
       aria-label="Travaa home"
-      className={cn("flex items-center gap-2.25", className)}
+      className={cn("flex items-center gap-2.5", className)}
     >
       <Logo className={cn("text-ink size-6", markClassName)} />
       {showLabel ? (

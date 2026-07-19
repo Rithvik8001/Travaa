@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Eyebrow } from "@/components/ui/eyebrow";
 import { MotionItem, PresenceList } from "@/components/ui/motion";
 import { AvailabilityToggle } from "@/components/trips/availability-toggle";
 import { ProposeWindowForm } from "@/components/trips/propose-window-form";
@@ -81,10 +82,11 @@ export function DatePoll({
 
   return (
     <section>
-      <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="mb-4 flex items-start justify-between gap-3">
         <div>
+          <Eyebrow className="mb-2">Dates</Eyebrow>
           <h2 className="text-ink text-[19px] font-semibold tracking-[-0.02em]">
-            Dates
+            When are we going?
           </h2>
           <p className="text-subtle-foreground mt-0.5 text-[13.5px]">
             {locked

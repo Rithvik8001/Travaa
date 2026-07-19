@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
+import { Eyebrow } from "@/components/ui/eyebrow";
 import type { PackingListView } from "@/lib/trips/packing";
 
 export function PackingEntryCard({
@@ -17,11 +18,12 @@ export function PackingEntryCard({
       <Card className="p-5 min-[560px]:p-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
+            <Eyebrow className="mb-2">Packing</Eyebrow>
             <h2
               id="packing-entry-title"
               className="text-ink text-[19px] font-semibold tracking-[-0.02em]"
             >
-              Packing
+              Nothing left behind
             </h2>
             <p className="text-muted-foreground mt-1 text-[13.5px] leading-[1.5]">
               Shared lists for the crew, private lists for your own bag.

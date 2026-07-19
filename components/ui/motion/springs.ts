@@ -1,6 +1,6 @@
 /**
- * Shared motion vocabulary. Every spring is bounce: 0 — the "gallery mono"
- * language is calm and premium, never bouncy. Durations are the only knob.
+ * Shared motion vocabulary. Every spring is bounce: 0 — Grid motion is calm
+ * and purposeful, never bouncy. Durations are the only knob.
  */
 export const spring = { type: "spring", duration: 0.3, bounce: 0 } as const;
 export const springSoft = { type: "spring", duration: 0.5, bounce: 0 } as const;

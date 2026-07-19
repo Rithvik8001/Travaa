@@ -35,7 +35,7 @@ export function Avatar({
       {initial}
       {status ? (
         <span
-          className="border-background absolute -right-px -bottom-px size-2.75 rounded-[2px] border-2"
+          className="border-background absolute -right-px -bottom-px size-[11px] rounded-[2px] border-2"
           style={{ background: status }}
         />
       ) : null}

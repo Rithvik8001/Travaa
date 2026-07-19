@@ -3,6 +3,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Container } from "@/components/ui/container";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { GridFrame } from "@/components/ui/grid-cell";
 
 const CANDIDATES = [
   { window: "Oct 12–16", available: 5, total: 6, best: true },
@@ -26,7 +27,7 @@ export function Bento() {
           </p>
         </div>
 
-        <div className="grid-frame mx-auto max-w-[780px]">
+        <GridFrame className="mx-auto max-w-[780px]">
           {/* Window chrome */}
           <div className="border-hairline text-subtle-foreground flex items-center justify-between border-b px-5 py-3 font-mono text-[11px] tracking-[0.06em] uppercase">
             <span className="flex items-center gap-2">
@@ -103,7 +104,7 @@ export function Bento() {
               </div>
             ))}
           </div>
-        </div>
+        </GridFrame>
       </Container>
     </section>
   );

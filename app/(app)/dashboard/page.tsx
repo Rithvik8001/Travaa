@@ -4,6 +4,7 @@ import { ArchivedTripRow } from "@/components/trips/archived-trip-row";
 import { TripListRow } from "@/components/trips/trip-list-row";
 import { CtaLink } from "@/components/ui/cta-link";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { GridFrame } from "@/components/ui/grid-cell";
 import { listArchivedTripsForUser, listTripsForUser } from "@/lib/trips/queries";
 import { requireSession } from "@/lib/session";
 
@@ -18,11 +19,8 @@ export default async function DashboardPage() {
 
   return (
     <main className="mx-auto w-full max-w-[1120px] px-6 py-10 min-[900px]:px-10 min-[900px]:py-14">
-      <div
-        data-rise-group
-        className="mb-8 flex flex-wrap items-end justify-between gap-4"
-      >
-        <div data-rise>
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
           <Eyebrow>Trips</Eyebrow>
           <h1 className="text-ink mt-3 text-[32px] leading-[1.05] font-semibold tracking-[-0.03em]">
             Your trips
@@ -35,11 +33,9 @@ export default async function DashboardPage() {
                 }`}
           </p>
         </div>
-        <div data-rise>
-          <CtaLink href="/trips/new" size="sm">
-            New trip
-          </CtaLink>
-        </div>
+        <CtaLink href="/trips/new" size="sm">
+          New trip
+        </CtaLink>
       </div>
 
       {trips.length === 0 ? (
@@ -56,7 +52,7 @@ export default async function DashboardPage() {
           </div>
         </div>
       ) : (
-        <div className="grid-frame grid grid-cols-1 min-[560px]:grid-cols-2 min-[1000px]:grid-cols-3">
+        <GridFrame className="grid grid-cols-1 min-[560px]:grid-cols-2 min-[1000px]:grid-cols-3">
           {trips.map((trip) => (
             <TripListRow key={trip.id} trip={trip} className="grid-cell" />
           ))}
@@ -72,7 +68,7 @@ export default async function DashboardPage() {
             </span>
             <span className="text-[13px] font-medium">New trip</span>
           </Link>
-        </div>
+        </GridFrame>
       )}
 
       {archived.length > 0 ? (
@@ -80,11 +76,11 @@ export default async function DashboardPage() {
           <h2 className="text-subtle-foreground mb-3 font-mono text-[11px] tracking-[0.12em] uppercase">
             Archived
           </h2>
-          <div className="grid-frame grid grid-cols-1 min-[560px]:grid-cols-2">
+          <GridFrame className="grid grid-cols-1 min-[560px]:grid-cols-2">
             {archived.map((trip) => (
               <ArchivedTripRow key={trip.id} trip={trip} className="grid-cell" />
             ))}
-          </div>
+          </GridFrame>
         </section>
       ) : null}
     </main>

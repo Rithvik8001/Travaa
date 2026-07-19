@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Eyebrow } from "@/components/ui/eyebrow";
 import { MotionItem, PresenceList } from "@/components/ui/motion";
 import { ItineraryForm } from "@/components/trips/itinerary-form";
 import { formatWindow } from "@/lib/trips/format";
@@ -45,8 +46,9 @@ export function ItineraryList({
   return (
     <section>
       <div className="mb-4">
+        <Eyebrow className="mb-2">Itinerary</Eyebrow>
         <h2 className="text-ink text-[19px] font-semibold tracking-[-0.02em]">
-          Itinerary
+          The day-by-day
         </h2>
         <p className="text-subtle-foreground mt-0.5 text-[13.5px]">
           {readOnly

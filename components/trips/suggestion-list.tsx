@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Eyebrow } from "@/components/ui/eyebrow";
 import { MotionItem, PresenceList } from "@/components/ui/motion";
 import { CommentThread } from "@/components/trips/comment-thread";
 import { SuggestionForm } from "@/components/trips/suggestion-form";
@@ -68,8 +69,9 @@ export function SuggestionList({
   return (
     <section>
       <div className="mb-4">
+        <Eyebrow className="mb-2">Ideas</Eyebrow>
         <h2 className="text-ink text-[19px] font-semibold tracking-[-0.02em]">
-          Ideas
+          What should we do?
         </h2>
         <p className="text-subtle-foreground mt-0.5 text-[13.5px]">
           {readOnly
